@@ -1,0 +1,159 @@
+**I recommend adding AI-DLC’s workflow controls around your existing context engine.** Your graph-based impact analysis, evidence-backed manifests, and per-change evaluation remain the foundation.
+
+I reviewed AI-DLC’s current repository documentation. The comparison below is against the README you pasted; I haven’t audited your kit’s implementation.
+
+AI-DLC’s most useful distinction is between a **deterministic engine that decides the next permitted step** and an **agent that performs that step**. Its stages declare inputs, outputs, dependencies, and responsible agents. Your kit could adopt that separation while keeping its six commands. [GitHub](https://github.com/awslabs/aidlc-workflows/blob/main/docs/guide/00-introduction.md?utm_source=chatgpt.com)
+
+Also, AI-DLC’s `stage-graph.json` describes **workflow dependencies**. Your code and service graphs describe **application dependencies**. Both are useful, and they serve different purposes.
+
+| Part of your kit | Recommendation |
+|---|---|
+| Graphify, enrichment, FAISS/BM25, knowledge linking | Keep as the context engine |
+| Context Manifest and impact analysis | Keep as authoritative inputs to workflow decisions |
+| Six commands | Keep as the user interface |
+| Workflow selection, progress, approvals, recovery | Strengthen using AI-DLC’s engine patterns |
+| Evaluation and pilot gates | Extend to measure workflow reliability as well as retrieval quality |
+| Claude integration | Fix the inactive hooks before expanding the pilot |
+
+The resulting architecture would look like this:
+
+```mermaid
+flowchart TD
+    C["Context engine"] -->|"Manifest and evidence"| W["Workflow controller"]
+    P["Approved project policy"] --> W
+    W -->|"Permitted stage and scope"| A["Claude Code"]
+    A -->|"Changes and results"| V["Refresh and verification"]
+    V -->|"Updated facts"| C
+    V -->|"Pass, failure, or scope drift"| W
+    W -->|"Verified outcome"| E["Change evaluation"]
+```
+
+These are the improvements I would prioritize.
+
+1. **Make workflow state explicit and resumable.**
+
+   AI-DLC persists stage progress and decisions separately, allowing work to resume across sessions. It also records reviews against specific source changes. [GitHub](https://github.com/awslabs/aidlc-workflows/blob/main/docs/guide/11-session-management.md?utm_source=chatgpt.com)
+
+   In your kit, make `/implement-change` consult an engine-owned state record containing:
+
+   - Current stage and selected workflow.
+   - Source baseline and graph/index snapshot.
+   - Manifest and plan versions.
+   - Approved scope and applicable policy version.
+   - Completed units, verification results, and unresolved blockers.
+
+   The controller should determine whether implementation may start, continue, require revision, or finish. An agent saying “approved” or “completed” should not change that state by itself.
+
+   Keep your existing ledger for history; make the state record the current execution position. This also makes interrupted runs recoverable without repeating completed work or approval questions.
+
+2. **Fix enforcement and bind approval to the actual plan.**
+
+   Your README explicitly identifies a gap: `.claude/hooks.json` uses Cursor’s format and does not run in Claude Code.
+
+   Claude Code supports project hooks through `.claude/settings.json`. `PreToolUse` can block a tool call; `PostToolUse` runs after the action and cannot prevent it. [Claude Code Docs](https://code.claude.com/docs/en/hooks?utm_source=chatgpt.com)
+
+   I would implement three complementary checks:
+
+   | Checkpoint | What it should validate |
+   |---|---|
+   | Before implementation | Current manifest, valid authorization, enabled services, approved plan |
+   | During implementation | Intended edits fit the approved scope; unexpected changes trigger reassessment |
+   | Before completion | Actual file changes, current verification evidence, and required reviews match the delivered result |
+
+   Include shell-generated changes in the final comparison. File-edit hooks alone cannot establish complete filesystem containment.
+
+   Separate **plan approval** from **result approval**. Normal edits within the approved plan should proceed. A changed requirement, expanded write scope, or materially changed dependency assumption requires reassessment. Changes after final review invalidate the affected review evidence.
+
+   AI-DLC’s source-bound review receipts provide a useful pattern, although their behavior depends on its configured guard policy. [GitHub](https://github.com/awslabs/aidlc-workflows/blob/main/docs/guide/10-state-and-audit.md?utm_source=chatgpt.com)
+
+3. **Introduce adaptive workflows driven by manifest facts.**
+
+   AI-DLC supports different workflow profiles and separates documentation depth from test strategy. That separation is valuable: a small change can need extensive verification without extensive documentation. [GitHub](https://github.com/awslabs/aidlc-workflows/blob/main/docs/guide/workflow-profiles.md?utm_source=chatgpt.com)
+
+   For your kit, I would start with four profiles:
+
+   | Proposed profile | Selection signals | Additional work |
+   |---|---|---|
+   | Focused bug fix | Local behavior change, understood dependencies | Reproduce defect, regression test, targeted implementation |
+   | Cross-service change | API/event changes or affected consumers | Contract assessment, consumer verification, compatibility plan |
+   | Migration | Database, configuration, or persisted-data changes | Transition sequence, rollback/recovery, migration verification |
+   | Investigation | Ambiguous requirement or material evidence gaps | Gather evidence and resolve questions before implementation |
+
+   Selection should use discovered facts, not just words such as “small fix” in the request.
+
+   Keep your mandatory manifest, service allowlist, and evidence requirements across profiles. AI-DLC’s profiles can relax some controls, so copy the configurability deliberately rather than inheriting every default. [GitHub](https://github.com/awslabs/aidlc-workflows/blob/main/docs/guide/13-customization.md?utm_source=chatgpt.com)
+
+4. **Break implementation into small, verifiable units.**
+
+   AI-DLC includes units of work, their dependency graph, contract design, and an optional first integrated slice. These are particularly useful for microservices. [GitHub](https://github.com/awslabs/aidlc-workflows/blob/main/docs/guide/04-phases-and-stages.md?utm_source=chatgpt.com)
+
+   Extend your change plan so each unit identifies its acceptance criteria, relevant manifest subset, permitted edits, dependencies, and verification commands.
+
+   A unit should represent a testable behavior change. It need not correspond to exactly one service.
+
+   Within `/build-context`, also distinguish:
+
+   - Requested behavior and acceptance criteria.
+   - Existing behavior established by evidence.
+   - Assumptions requiring a decision.
+
+   This prevents a technically accurate impact graph from supporting the wrong business change. Start with serial execution; introduce parallel execution only when units and shared-file ownership are sufficiently independent.
+
+5. **Turn your ground rules into executable checks.**
+
+   AI-DLC calls these checks *sensors*. Gate-bound sensors can be advisory or blocking; its documentation distinguishes these from checks that merely report findings after writes. [GitHub](https://github.com/awslabs/aidlc-workflows/blob/main/docs/harness-engineering/06-sensors.md?utm_source=chatgpt.com)
+
+   Your most useful checks would be:
+
+   | Before implementation | Before completion |
+   |---|---|
+   | Manifest matches the analyzed snapshot | Actual changes fit the authorized scope |
+   | Required semantic search succeeded | Required tests actually executed |
+   | Material unknowns have an explicit disposition | Relevant contract checks passed |
+   | Required approval is current | Evidence refers to the delivered revision |
+
+   Build on your existing tools rather than duplicating their logic in prompts.
+
+   Also preserve the distinction between **a citation existing** and **a citation supporting a claim**. Structural validators can establish IDs, paths, revisions, and results; semantic review must still assess whether the evidence supports the conclusion.
+
+6. **Separate approved project rules from retrieved knowledge and learned observations.**
+
+   AI-DLC separates framework knowledge, team knowledge, and indexed documents. Its document summaries are bound to document revisions and invalidated when the original changes. Its learning loop requires confirmation before observations become persistent practices. [GitHub](https://github.com/awslabs/aidlc-workflows/blob/main/docs/guide/08-knowledge.md?utm_source=chatgpt.com)
+
+   Apply that distinction to your existing knowledge engine:
+
+   - **Approved policies:** authoritative workflow constraints.
+   - **Retrieved documents:** evidence with source, version, permissions, and possible conflicts.
+   - **Episodes:** observations from completed changes.
+   - **Proposed practices:** lessons awaiting validation and approval.
+
+   Keep `knowledge/` untrusted by default. A statement inside a PDF should not silently become an agent instruction.
+
+   Promote repeated, validated lessons during review or pilot evaluation. You do not need another confirmation ritual after every small step.
+
+7. **Strengthen evaluation around the limitations you already disclose.**
+
+   Workflow improvements will not resolve name-based dependency matching. Keep graph accuracy as a separate engineering workstream.
+
+   Three changes are especially important:
+
+   **Preserve seed-selection history.** Record the original candidates, selected seeds, exclusions, and reasons. An agent’s `--seed` choice must not silently remove a real consumer and produce an apparently safer manifest.
+
+   **Use independent impact ground truth.** Files changed by the implementing agent are not a complete answer key. Evaluation should include independently reviewed dependencies, consumers needing verification, and relevant tests—even when those files need no edits.
+
+   **Evaluate critical misses separately.** An aggregate recall of 0.90 can still conceal a missed critical consumer. Report recall by service, contract, code, and test scope, plus missed critical dependencies.
+
+   Add workflow failure scenarios to your portable tests: stale manifests, reused approvals, unexpected shell edits, interrupted runs, skipped verification, and newly discovered consumers. Compare the existing kit with the enhanced workflow on the same tasks, measuring correctness, missed impact, review effort, and completion time.
+
+For an illustrative Catalogue change—“prevent inactive products from being ordered”—the enhanced flow would be:
+
+1. `/build-context` retrieves relevant rules and implementation, discovers candidate consumers, and records acceptance criteria.
+2. The controller selects the appropriate profile and produces bounded implementation units.
+3. The applicable gate authorizes that specific plan.
+4. `/implement-change` executes the units and their checks.
+5. If refresh discovers another consumer, the engine reassesses its impact. Any necessary scope expansion produces a revised plan and gate.
+6. `/evaluate-change` measures both the delivered behavior and the quality of the original impact prediction.
+
+**My implementation order would be: working Claude hooks and approval binding first; persistent workflow state second; profiles and verifiable units third; knowledge promotion and broader evaluation afterward.**
+
+If you eventually integrate AI-DLC directly, give it sole ownership of workflow routing and have it call your Python context engine through a defined interface. Keep one authority for stage transitions and approvals, with your manifest supplying the evidence those decisions require.
