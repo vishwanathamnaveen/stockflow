@@ -207,3 +207,225 @@ Latency: the engine takes 50 to 120 ms per query in-process once the model is lo
 4. Small sample (3 stories, 12 target files) on a tree where the changes already exist. Treat these as directional results, not a benchmark.
 
 Rerun with `python artifacts/experiments/cocoindex-code-comparison/compare.py` from the repo root. It expects `ccc` at `C:\Users\296003\ccc-venv` and an indexed copy of the service in the script's directory (`ccc-corpus/`).
+
+
+
+
+------------------------------------------------------------------------------------------
+**Brownfield Starter Kit — manifest and context-engine review**
+
+Recommendation: keep the existing Graphify, AST, FAISS and BM25 architecture. Improve correctness, corpus coverage, scope semantics and the amount of evidence each agent reads before evaluating a replacement stack.
+
+This review inspected the uploaded kit source, including the manifest template and builder, semantic index, graph enrichment, refresh, evaluation, episode recording and agent instructions. It did not change the kit or application code. Five isolated probes executed selected functions or expressions with controlled inputs; they did not run the context engine against the kit folder. No Casper application tree, generated application manifest or executable retrieval experiment was available in this archive, so the review does not claim an end-to-end run, measured token savings or improved retrieval recall.
+
+**What is already worth keeping**
+
+The kit already separates retrieval from graph expansion, enriches code with routes and business rules, records retrieval outcomes, distinguishes runtime observations from unobserved consumers, and requires change-specific tests. It has incremental embedding reuse, removal of disappeared documents, checksums to detect inconsistent index files, content-based graph freshness, a refresh lock, before/after input checks, a source-state digest, mandatory workflow floors and a post-change graph scope check. These capabilities should be extended rather than reimplemented.
+
+`compact_trace()` already replaces a repeated task query with a reference and compacts retrieval rows. A schema redesign should retain that work and retain identifiable evidence, rather than simply deleting audit fields.
+
+**Fix these correctness issues first**
+
+| Priority | Finding in the supplied source | Consequence | Recommended change |
+|---|---|---|---|
+| P1 | `manifest.py`, line 249: `SHAPE_CHANGE` contains four literal U+0008 backspace characters where word-boundary escapes were intended. | Ordinary requests such as “Add a field priority to the Project response” do not match this detector. Other seed logic may still find some classes, but this shape-change path is broken. | Replace the control characters with regex word boundaries. Add regression cases for add/remove/rename field requests and a negative case for a query-parameter-only change. |
+| P1 | `manifest.py`, line 1042: `consumers_proven_complete` is `bool(external_catalog)`. The corresponding text says the inventory was verified, but this path does not load or validate it. | A nonempty, nonexistent catalogue reference produces an unsupported completeness claim. | Record catalogue reference, load status, content digest, freshness and declared boundary. Claim completeness only within a verified boundary; a configured location alone is insufficient. |
+| P1 | `evaluate.py`, line 61: `effective_workflow()` trusts the builder's final selection; `manifest.py`, line 1464, takes the stricter selection. `record_episode.py` records only the generated selection. | Governance, evaluation and memory can disagree about the effective workflow. A guarded manifest plus a fast-track builder note evaluates as fast-track. | Use one shared policy function in all three consumers. Validate workflow enums and reject an attempted downgrade; record the effective workflow and policy version. |
+| P1 | `semantic_index.py`, line 396: after hybrid ranking, `seed_search()` drops every hit below the dense threshold, regardless of its lexical evidence. It filters only the returned top-k pool. | A strong exact-name hit can disappear, and rejected hits are not backfilled from lower ranks. | Distinguish exact symbol/config-key matches, lexical candidates and semantic candidates. Preserve verified exact matches; calibrate other candidates using hybrid evidence. Retrieve a larger candidate pool and backfill after admission. Keep uncertain candidates subject to source verification. |
+| P2 | `semantic_index.py`, line 246: freshness compares document IDs and embedding-text hashes, but not linked locations or other retrieval metadata. | With the same ID and text, a changed file/line link can be reported fresh. A normal refresh that rebuilds the index can repair metadata, but the freshness predicate itself cannot detect this case. | Track embedding-input hashes separately from entity/location metadata hashes. Rewrite metadata when it changes while reusing the unchanged vector. |
+
+The exact probe results were:
+
+| Probe | Observed result |
+|---|---|
+| Ordinary add-field request against the supplied regex | No match; after replacing U+0008 with word boundaries, it matches. |
+| Generated `guarded`, builder note `fast-track` | Manifest policy: `guarded`; evaluation policy: `fast-track`. |
+| Mock rank-one result with dense 0.54, BM25 30.0 and threshold 0.55 | Zero seed candidates; trace says `dropped: below min_dense_score`. This isolates admission behavior, not a benchmark of a real query. |
+| Same document ID/text, changed file/line links | Freshness reports `fresh`. |
+| `external_catalog: missing-inventory.yaml` | Completeness is `true`; note says consumers were verified against that path. |
+
+**The main schema improvement: distinguish evidence, impact and edit permission**
+
+The current manifest has a rich evidence vocabulary, but its `files` field is overloaded. In `analyse()`, it includes primary-service direct and transitive affected files, plus secondary-service direct files. Agent instructions then use `files` as the implementation boundary. That conflates “could be affected” with “should be edited,” while representing secondary-service impact differently.
+
+Keep these concepts explicit:
+
+| Concept | Meaning | Who establishes it |
+|---|---|---|
+| Change candidates | Existing code/config/contracts plausibly requiring a change | Tool-generated discovery plus recorded agent assessment |
+| Inspection scope | Dependencies, callers, consumers and documents needed to understand the change | Evidence engine |
+| Verification scope | Tests, contracts, services and QA cases requiring checks | Evidence engine plus requirement-specific planning |
+| Approved changes | Exact allowed file operations for this manifest revision | Existing workflow's validated plan/gate |
+| Planned artifacts | New files/symbols that do not exist in the current graph | Explicit change plan, tied to an acceptance criterion and approved through the same gate |
+
+Do not grant edit permission automatically when a node is retrieved or traversed. Conversely, do not require a new DTO or migration to already exist in the graph before it can be proposed in a plan.
+
+Add a separate `schema_version`; the existing `revision` is a change-scope revision, and `CONTEXT_ENGINE_VERSION` is an implementation version. Neither defines a manifest contract. Validate the generated manifest, agent annotations and all manifest reads. Syntax validation alone is insufficient: references must resolve, file operations must respect enabled services, required evidence must be from the pinned snapshot, and effective policy must not weaken.
+
+The following is an abridged design sketch, not a complete replacement schema or a real project manifest:
+
+```yaml
+schema_version: "2.0"
+manifest_id: CR-example
+revision: 0
+
+snapshot:
+  source_state_digest: "<existing refresh digest>"
+  base_commit: "<commit or null>"
+  artifact_digests:
+    service_graph: "<digest>"
+    code_graphs: {projects: "<digest>"}
+    semantic_index: "<digest>"
+  policy_digest: "<policy/config digest>"
+
+request:
+  objective: "Expose the project review state in the project response"
+  acceptance_criteria:
+    - {id: AC-1, text: "The response includes the agreed review state"}
+
+scope:
+  change_candidates:
+    - {entity: symbol:projects:ProjectMapper.toResponse, requirement: AC-1}
+  inspect:
+    - {entity: symbol:projects:ProjectService.getProject, reason: caller}
+  verify:
+    - {entity: api:projects:getProject, reason: response_contract}
+  approved_changes: []
+  planned_artifacts: []
+
+requirement_coverage:
+  - requirement: AC-1
+    state: needs_review
+    evidence_refs: [E-1]
+    open_questions: ["Which DTO field and compatibility behavior are approved?"]
+
+impact:
+  evidence_bundle: {path: context-evidence.json, digest: "<digest>"}
+  coverage:
+    external_consumers: not_verified
+    traversal: {max_depth: 3, truncated: false, frontier_refs: []}
+
+decision:
+  workflow: plan-approve-execute
+  mandatory_gate_ids: [public_contract_change]
+  unresolved_ids: [U-1]
+  required_check_ids: [CHECK-projects, CHECK-contract, CHECK-refresh, CHECK-scope]
+
+assessment:
+  score_kind: heuristic
+  scoring_version: "<version>"
+  components_ref: confidence-components
+
+agent_review:
+  based_on_generated_digest: "<digest>"
+  seed_decisions_ref: seed-decisions
+  escalations: []
+```
+
+Represent entities once in the evidence bundle using repository/service identity, qualified symbol identity, file, numeric start/end lines, content hash and Graphify ID where available. Graphify IDs should be an integration mapping, not the only durable identity. Preserve aliases or remappings when symbols move; do not use a line number as identity.
+
+An evidence path should contain typed edges and evidence references: for example, `ProjectMapper.toResponse --RETURNS--> ProjectResponse`, with source spans and a resolution mode such as `resolved`, `name_based`, `runtime_observed` or `hypothesized`. A hypothesized relationship remains explicitly provisional. Prefer evidence categories over uncalibrated per-edge probabilities.
+
+**Reduce agent context without losing the audit trail**
+
+Start with a small change to the existing artifact layout:
+
+| Artifact | Contents |
+|---|---|
+| `context-manifest.yaml` | Snapshot identity, request/criteria, scope roles, decision, required checks, unresolved issues and digest-bound evidence references |
+| `context-evidence.json` | Detailed dependency paths, entity records, retrieval traces, history, document citations, coverage mappings and runtime evidence |
+| Generated agent view | Relevant slice for the planner, implementer or reviewer; always includes applicable gates, unresolved issues, snapshot and scope restrictions |
+
+Preserve the complete evidence record. The agent view is a deterministic projection, not a second independently authored truth. An implementer should not need every historical commit or every dropped retrieval hit to edit one mapper, but should be able to request them by evidence ID.
+
+Expose small engine operations through the existing Python CLI first. Suggested operations—not existing commands—are `search`, `explain-impact`, `get-entity`, `get-evidence`, `get-context-view` and `validate-change`. Each returns structured results with snapshot ID, matched evidence, limits/truncation and relevant unresolved issues. A long-lived server or MCP interface is optional after this contract is stable.
+
+Measure actual manifest bytes, agent-visible tokens, repeated fields, source reads and missing-evidence requests before setting a context budget. The archive does not supply representative generated manifests, so any percentage reduction would be speculative. If a view is truncated, expose the omitted count/frontier and continuation mechanism. Never silently truncate policy or unresolved blocking issues.
+
+**Close the configuration gap end to end**
+
+Your retrieval experiment's configuration miss matches the source: `semantic_index.corpus()` has code, rules, APIs, topics, docs and services, but no configuration corpus. However, the kit does already discover configuration definitions: `manifest.config_definitions()` searches configured paths, and `config.config_keys` can record matches from affected code. This is a partial path, not a complete absence of configuration support.
+
+Add configuration sections/keys as retrievable entities, with service, file, key path, profile/environment, comments, source location and content hash. Keep secrets and resolved credentials out of embedding text. Distinguish nested keys and profiles; the current definition search also matches leaf names, which can return unrelated keys with the same leaf.
+
+Then link code readers to keys and keys to definitions using `READS_CONFIG` and `DEFINED_IN`. Update seed admission to support file/key anchors as well as symbols: today `seed_search()` expects linked `service` and `symbol` fields. A configuration-only change must be representable even without a resolvable code reader. Carry the key/file through impact analysis and plan approval. Merely adding a YAML document to FAISS does not guarantee that it reaches the manifest or can be edited.
+
+Evaluate this as a separate ablation against the same pre-change tree and fixed query set. Corpus inclusion is necessary for retrieving `application.yml`; it does not guarantee a top-10 rank or prove the intended implementation scope.
+
+**Handle design-driven impact explicitly**
+
+The US-103 result suggests a second problem: a mapper or response DTO may be necessary to satisfy an acceptance criterion even when the request does not mention it. Fix the shape-change detector, then add a requirement-driven inspection pass:
+
+1. Resolve the relevant endpoint, service operation or business rule using the current hybrid retrieval.
+2. Inspect input/output types, serializers/mappers, persistence models and contracts using available source evidence.
+3. For each acceptance criterion, mark relevant surfaces `covered`, `needs_review`, `not_applicable` or `unknown`, with reasons.
+4. Suggest missing change candidates; require source verification or explicit planned-artifact approval before expanding edit permission.
+5. Select existing regression tests and separately require tests for the new behavior.
+
+This complements graph traversal. `SymbolIndex.dependents()` currently walks reverse references using bare symbol names, and Graphify neighbor expansion focuses on incoming calls/uses/references/inheritance. A response type may require an outgoing, typed relationship rather than another reverse hop. Do not compensate by blindly increasing transitive depth or assuming every connected DTO must change.
+
+For the illustrative request “Show the review state in the project response,” retrieval might find a service method. Reading its route and return type identifies the response DTO; inspecting the conversion identifies the mapper. These become evidence-backed candidates. A consumer is initially inspection/verification scope; whether it requires an edit depends on compatibility and behavior. A missing relationship is an unknown, not proof that the consumer is unaffected.
+
+**Make freshness precise before introducing long-lived agents**
+
+Use the source-state digest already produced by `refresh.py`; carry it into the manifest and bind each evidence artifact to it. The manifest currently reports primary graph freshness and a service-graph commit, but does not bind the full multi-service read set to one snapshot.
+
+Keep embedding-input fingerprints separate from location/evidence metadata fingerprints. Include model identity/revision, preprocessing version and chunking policy in the embedding cache identity. This allows metadata-only updates without re-embedding and avoids reusing vectors after changing their input contract.
+
+For a persistent service, cache by snapshot/index identity. The current no-argument `_loaded()` cache, `symbol_index(service)` cache and module-level service graph are suitable for short-lived CLI assumptions but need explicit invalidation when another process publishes a refresh. Per-file atomic replacement and checksum retries already protect individual semantic-index reads; they do not constitute a transaction over every graph and index. If concurrent readers become necessary, publish a validated artifact set through an atomic snapshot pointer and keep old snapshots until readers finish.
+
+Use task-start content hashes for approval freshness and change attribution, including Git repositories with uncommitted work. The kit already writes `baseline.json`, but agent instructions commonly compare against `task.commit`, and Git-backed episode recording uses the commit diff. A commit alone cannot distinguish pre-existing uncommitted work from this task's edits.
+
+**Optimize runtime where the source shows repeated work**
+
+| Current behavior | Proposed optimization | What to measure |
+|---|---|---|
+| `search()` requests all N FAISS results, scans BM25 documents, sorts full rankings and applies filters late; the KB follows a similar pattern. | Retrieve bounded dense and lexical candidate pools, fuse their union, apply service/type eligibility consistently and backfill as necessary. Introduce a lexical postings index if corpus size warrants it. Exact FAISS still performs its distance work; top-k mainly reduces ranking/materialization overhead. | Seed and impact recall, warm p50/p95, candidate counts, filtered-query behavior |
+| `SymbolIndex` performs repeated list scans and name-based reverse traversal. | Precompute symbol/qualified-name maps, file-span maps and reverse-reference adjacency; retain ambiguity metadata. | Graph expansion time and false-positive impact |
+| Code embedding text includes only the first 700 source characters (`enrich_graph.BODY_CHARS`). | Keep enriched symbol summaries, add bounded body chunks for long symbols, and map all chunks to their parent entity. Test a tail-of-function retrieval case. | Recall for behavior beyond the prefix, index size and duplicate hits |
+| Semantic freshness reconstructs the current corpus; a refresh rebuilds service graph and index stages even if only another stage needs work. | Profile these stages, cache per-file parse records, and skip stages whose complete input fingerprints are unchanged. Preserve before/after consistency checks. | No-change refresh latency, parse counts, metadata-only rebuild cost |
+| Manifest construction invokes Git history/status/count operations per affected file. | Batch or cache history by commit/path, and keep detailed history out of the default agent view. | End-to-end build-context latency, not search latency alone |
+
+Keep the present local stack for the pilot. A different vector store or GraphRAG layer will not repair missing configuration entities, incorrect policy evaluation or absent type relationships. Consider more expensive retrieval/index changes only after these changes have a measured baseline.
+
+**Strengthen evidence and validation semantics**
+
+The confidence components are useful diagnostics, but they should remain labeled heuristic. Explicit seeds can give `intent_resolution` a score of 1.0 even when an acceptance criterion is not mapped. Dependency clarity can be high when few edges were found. Add requirement coverage, parser coverage/unparsed-file counts, unresolved references and boundary completeness as visible dimensions; do not interpret an empty conflict list as a complete graph. Preserve the existing critical-dimension caps and mandatory gate floors.
+
+Keep `--verify-scope` for its useful purpose: it recomputes graph reach after the change. It is not itself an actual-file-diff authorization check. The current judge checks that separately, and episode recording reports unpredicted files. Add one deterministic validation entry point that compares actual file operations—including additions, deletions, renames and untracked files—to the approved revision, uses the configured language-independent test classifier and emits structured failures. Bind required-check results and approval records to manifest revision and source digest. Existing human gate policy stays in force.
+
+Rollout order also needs an explicit compatibility precondition. `rollout_order()` assumes a provider's backward-compatible change and breaks cycles deterministically. Report cycles and unknown compatibility rather than presenting an arbitrary sequence as a validated deployment plan. Breaking changes may need an expand/migrate/contract sequence with more than one step per service.
+
+**Suggested implementation order and acceptance evidence**
+
+| Step | Change set | Acceptance evidence |
+|---|---|---|
+| 1 | Regex fix, catalogue verification state, shared effective-workflow logic, hybrid-admission regression | Focused regressions reproduce the old behavior and pass with the corrections; downgrade attempts cannot weaken the effective policy. |
+| 2 | Config entities and links, long-symbol body chunks, requirement-driven DTO/mapper inspection | Frozen pre-change examples cover configuration-only changes, response changes and behavior outside the first 700 characters. Compare each addition separately. |
+| 3 | Versioned manifest contract, explicit scope roles, snapshot references, metadata freshness | Reject malformed/dangling references and stale snapshots; allow approved planned files; metadata-only changes update locations without embedding again. |
+| 4 | Evidence sidecar and generated agent views | The compact view preserves every applicable gate and unresolved blocker; requested evidence resolves to the same snapshot. Measure bytes/tokens rather than assuming savings. |
+| 5 | Candidate-pool ranking, indexed lookups, stage skipping and optional persistent process | Pre-agreed recall constraints hold; warm and cold latency, refresh time and memory are reported on increasing corpus sizes. |
+
+Maintain backward compatibility during migration. Read current manifests through a v1 adapter; add v2 fields and dual-report before changing enforcement. Preserve the legacy `files` meaning for existing consumers until every command, judge and evaluator has migrated. Unknown schema versions should produce an explicit compatibility error. Generate documentation/examples from the validated contract to limit template drift.
+
+Evaluate seed retrieval, impact discovery and edit prediction separately. Files actually changed are useful edit-prediction labels, but do not enumerate every consumer or test that should have been inspected. Avoid using a manifest's own predicted scope as independent ground truth. Use reviewed impact labels and pre-change snapshots for a small set of real changes, including a multi-service contract change, an unrelated same-name method, config-only change, new file, rename/deletion, stale index and missing parser coverage. Your reported recall target can remain a pilot objective, with numerator/denominator and sample size shown.
+
+The first implementation pass should deliver correctness fixes, configuration support and clearer scope semantics. The second should reduce agent context and repeated work. No retrieval-stack replacement is justified by the supplied experiment or this source review alone.
+
+**Source index**
+
+Line numbers in the findings refer to the uploaded archive; the links open the extracted review copy.
+
+| Source | Relevant areas |
+|---|---|
+| [manifest.py](sandbox:/workspace/scratch/d5cb2d4f3816/review/brownfield-starter-kit/kit/tools/context/manifest.py) | Shape detector 249; configuration definitions 437; rollout 641; analysis 665; completeness 1042; confidence 1068; trace compaction 1264; effective workflow 1464; scope check 1471; writer 1572 |
+| [semantic_index.py](sandbox:/workspace/scratch/d5cb2d4f3816/review/brownfield-starter-kit/kit/tools/context/semantic_index.py) | Corpus 172; BM25 198; freshness 246; incremental build 265; consistent reads 323; cache 346; search 356; seed admission 396 |
+| [context-manifest-template.yaml](sandbox:/workspace/scratch/d5cb2d4f3816/review/brownfield-starter-kit/kit/.claude/templates/context-manifest-template.yaml) | Current field contract and agent-added annotations |
+| [common.py](sandbox:/workspace/scratch/d5cb2d4f3816/review/brownfield-starter-kit/kit/tools/context/common.py) | Source-state digest 357; SymbolIndex 580; reference traversal and caches |
+| [refresh.py](sandbox:/workspace/scratch/d5cb2d4f3816/review/brownfield-starter-kit/kit/tools/context/refresh.py) | Refresh stages 99; locking, verification and snapshot publication 148 |
+| [evaluate.py](sandbox:/workspace/scratch/d5cb2d4f3816/review/brownfield-starter-kit/kit/tools/context/evaluate.py) | Effective workflow 61; file-level scope accuracy 67; change evaluation 77 |
+| [record_episode.py](sandbox:/workspace/scratch/d5cb2d4f3816/review/brownfield-starter-kit/kit/tools/context/record_episode.py) | Change attribution, unpredicted files and recorded workflow |
+| [enrich_graph.py](sandbox:/workspace/scratch/d5cb2d4f3816/review/brownfield-starter-kit/kit/tools/context/enrich_graph.py) | Source-prefix limit 39; embedding text and location metadata 164 |
+| [change-agent.md](sandbox:/workspace/scratch/d5cb2d4f3816/review/brownfield-starter-kit/kit/.claude/agents/change-agent.md) | Pre-code gates, freshness, implementation scope and validation |
+| [change-judge.md](sandbox:/workspace/scratch/d5cb2d4f3816/review/brownfield-starter-kit/kit/.claude/subagents/change-judge.md) | Diff-based scope review and unknown resolution |
+
