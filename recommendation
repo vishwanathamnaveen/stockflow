@@ -428,4 +428,47 @@ Line numbers in the findings refer to the uploaded archive; the links open the e
 | [enrich_graph.py](sandbox:/workspace/scratch/d5cb2d4f3816/review/brownfield-starter-kit/kit/tools/context/enrich_graph.py) | Source-prefix limit 39; embedding text and location metadata 164 |
 | [change-agent.md](sandbox:/workspace/scratch/d5cb2d4f3816/review/brownfield-starter-kit/kit/.claude/agents/change-agent.md) | Pre-code gates, freshness, implementation scope and validation |
 | [change-judge.md](sandbox:/workspace/scratch/d5cb2d4f3816/review/brownfield-starter-kit/kit/.claude/subagents/change-judge.md) | Diff-based scope review and unknown resolution |
+-------------------------------------------------------------------------------------------------------------
+I checked all the review comments against the kit source in stockflow/stockflow/brownfield-starter-kit/kit; its line numbers match the review exactly. All five correctness findings are real and I've fixed them, plus the config gap from your experiment. The large redesign items are not done yet: they're reasonable, but each is its own project.
 
+Validation of the comments
+Finding	Valid?	What I found
+P1 SHAPE_CHANGE has backspace characters	Yes	Literal \x08 characters where \b was meant (also in Casper's installed copy)
+P1 catalogue completeness = bool(external_catalog)	Yes	Existing test TC-F4-02 actually treated a bare URL as "proven complete"
+P1 three different effective-workflow rules	Yes	evaluate.py let a builder note downgrade guarded to fast-track; record_episode.py ignored the note
+P1 dense threshold drops strong lexical/exact hits, no backfill	Yes	Confirmed in seed_search()
+P2 freshness ignores file/line metadata	Yes	Confirmed
+Config files not in the corpus	Yes	Root cause of the US-102 miss
+Schema v2, evidence sidecar, agent views, perf, US-103 inspection pass	Reasonable	Not started
+What changed
+common.py:
+One workflow policy for all three tools. A builder note can escalate the workflow but never downgrade it, and unknown workflow names are rejected. The policy version is recorded.
+A config-file parser that keeps line numbers, comments and profiles, and redacts secret values.
+A config-reader lookup that also handles prefix binding like @ConfigurationProperties(prefix=...).
+manifest.py:
+Regex fixed.
+The catalogue counts as proof only if it's a local file with a declared boundary:. A URL or a missing file proves nothing.
+Config key definitions now match the full key path, so an unrelated key with the same last segment no longer matches.
+--seed <config.key> now brings in the key's readers and its config file. Before, it was flagged as a "new concept" and forced clarify.
+Config files found only by search are listed as inspect-only and don't widen edit scope.
+The input snapshot digest and policy version are now written into the manifest.
+semantic_index.py:
+Config sections are now searchable documents.
+Hits can be admitted three ways: exact name, dense score, or strong BM25 within 0.05 of the threshold. Dropped hits are replaced from a larger pool.
+A separate metadata fingerprint lets a moved symbol mark the index stale without re-embedding.
+The embedding version is part of vector-cache reuse.
+evaluate.py / record_episode.py: both use the shared policy, and attempted downgrades are flagged.
+Docs and tests: config, manifest template, 01-SETUP.md, and the reference F4 tests (TC-F4-02 rewritten, F4-03/04 added) plus new F1/F6 tests.
+Verification
+I ran everything on a scratch copy of Casper with the patched tools; your real repo is untouched.
+
+Review probes: all 26 checks pass, including the reviewer's five scenarios and negative cases.
+Kit reference tests: 47 passed.
+Retrieval (engine only): US-102 recall@5 went from 0.6/0.8 to 1.0/1.0 (application.yml now ranks 5th). US-101 and US-103 are unchanged. These were measured on the tree after the changes landed, so treat them as directional.
+Incremental index rebuild: only the 5 new config documents were embedded; 185 vectors were reused.
+Regression: a normal task produced identical files and workflow before and after.
+Not run: the stockflow reference tests (brownfield-reference-stockflow/tests), because no stockflow app tree is available here.
+Decisions for you
+Config-only change workflow: "Raise the QC lead time to 2 days" with the key as a seed now comes out as fast-track at confidence 0.96, where before it was clarify. Check that this matches your gating intent.
+Not committed: the kit folder already had uncommitted changes of yours in other files, which I left alone, and I haven't committed anything.
+Casper's installed copy: casper-service + QA Test Cases/tools/context is an older version of the kit and still has the regex bug. Updating it means replacing those tools with the kit's and running /refresh-context. Should I do that?
