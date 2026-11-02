@@ -157,3 +157,53 @@ For an illustrative Catalogue change—“prevent inactive products from being o
 **My implementation order would be: working Claude hooks and approval binding first; persistent workflow state second; profiles and verifiable units third; knowledge promotion and broader evaluation afterward.**
 
 If you eventually integrate AI-DLC directly, give it sole ownership of workflow routing and have it call your Python context engine through a defined interface. Keep one authority for stage transitions and approvals, with your manifest supplying the evidence those decisions require.
+
+
+
+
+
+
+
+
+
+
+
+--------------------------------------------------------------------------------------------------------------
+# Retrieval comparison: semantic_index.py vs cocoindex-code
+
+Date: 2026-11-03. Service: casper-sample (post-US-101/102 tree). Experiment only. No product code, graphs or indexes in the repo were changed.
+
+## Setup
+
+| | Current engine (`tools/context/semantic_index.py`) | cocoindex-code 0.2.42 (`ccc`) |
+|---|---|---|
+| Model | BAAI/bge-small-en-v1.5 | BAAI/bge-small-en-v1.5 (forced: the default Snowflake/snowflake-arctic-embed-xs can't be downloaded through the proxy) |
+| Units | 185 docs: enriched graph nodes + BR rows + OpenAPI ops + doc sections | 151 AST chunks of raw source over 81 files (java, md, xml, yml, sql) |
+| Ranking | FAISS cosine + BM25, RRF | dense only (sqlite-vec) |
+| Index | built by `/setup-context` | copy of the service in a scratch dir, `ccc index` took about 30 s |
+
+Scoring is at file level with test files excluded, against `files_changed` in `artifacts/memory/episodes.jsonl`. US-103 has no implementation yet, so it's scored against the code-parsed manifest's predicted `files`.
+Query sets: **A** = story + acceptance criteria. **B** = the queries `/build-context` actually sent (task objective + expansions). Multiple queries are fused with RRF k=60 for both tools.
+
+## Results
+
+| Story | Queries | Engine R@5 / R@10 | ccc R@5 / R@10 | Notes |
+|---|---|---|---|---|
+| US-101 | A | 1.0 / 1.0 | 1.0 / 1.0 | identical top 3 |
+| US-101 | B | 1.0 / 1.0 | 0.67 / 0.67 | ccc drops OrderType.java to rank 15 |
+| US-102 | A | 0.6 / 0.8 | 0.6 / 0.6 | engine finds ProjectRepository (2), ccc doesn't (not in top 40) |
+| US-102 | B | 0.8 / 0.8 | 0.6 / 0.8 | **ccc finds application.yml at rank 2. The engine can't, because config files aren't in its corpus** |
+| US-103* | A | 0.25 / 0.25 | 0.0 / 0.0 | both weak. ProjectResponse/ProjectMapper are needed by design, not by text similarity |
+
+\* predicted scope, not a real change.
+
+Latency: the engine takes 50 to 120 ms per query in-process once the model is loaded (the first call took about 14 s). `ccc search` takes 0.7 to 0.9 s per call through the CLI, mostly process start-up.
+
+## Conclusions
+
+1. **cocoindex-code is not better at retrieval here**: equal on 1 of 5 runs, worse on 3, better only on config files. BM25 and the enriched node text (summaries, BR links) do measurable work.
+2. **It has no graph, BR links, service routing, freshness proof or manifest.** At most it could replace the seed-retrieval step. It can't replace the context engine.
+3. **Its one real win points at a gap in the engine**: `application.yml` is not indexed. That's the US-102 recall miss (evaluation.md WARN, review F3). Adding config files (`src/main/resources/*.yml|properties`) as a corpus type in `semantic_index.py` would close it without a new dependency.
+4. Small sample (3 stories, 12 target files) on a tree where the changes already exist. Treat these as directional results, not a benchmark.
+
+Rerun with `python artifacts/experiments/cocoindex-code-comparison/compare.py` from the repo root. It expects `ccc` at `C:\Users\296003\ccc-venv` and an indexed copy of the service in the script's directory (`ccc-corpus/`).
