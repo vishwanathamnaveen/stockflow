@@ -1,0 +1,5 @@
+{
+  "minChars": 200,
+  "blockedPlaceholders": ["TODO", "<feature-or-slice>", "TBD TBD"],
+  "canonicalDocPrefixes": ["docs/stories/", "docs/quality/", "docs/implementation/", "artifacts/brd/", "artifacts/audit/"]
+}

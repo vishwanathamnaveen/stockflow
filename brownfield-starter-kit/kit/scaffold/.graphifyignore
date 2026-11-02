@@ -1,0 +1,25 @@
+# The overall graph = the application. Kit tooling, generated artifacts and build output are not graphed.
+tools/context/
+scripts/_paths.py
+scripts/graphify_all.py
+scripts/run_tests.py
+scripts/intake-safety-scan.py
+.claude/
+artifacts/
+graphs/
+var/
+docs/harness/
+docs/context-engine/
+knowledge/
+.venv/
+.venv-context/
+node_modules/
+target/
+build/
+dist/
+out/
+bin/
+obj/
+vendor/
+.gradle/
+coverage/

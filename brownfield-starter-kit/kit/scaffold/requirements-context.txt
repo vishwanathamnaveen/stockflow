@@ -1,0 +1,25 @@
+# Brownfield context engine toolchain (Python 3.10+). Installed as tools/context/requirements.txt; Python repos also get
+# these lines appended to their requirements.txt. The code being analysed can be in any language.
+# torch comes from the CPU-only index (nothing leaves the machine after the one-time model download).
+# Install with `python scripts/setup_toolchain.py`: it applies tools/context/constraints.txt (the exact versions of
+# every transitive package, so transformers / huggingface_hub / numpy cannot drift), installs torch from the CPU
+# index first, and fetches the embedding model once. By hand: pip install -r requirements.txt -c constraints.txt
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+# --- tests and code graphs
+PyYAML==6.0.3
+pytest==9.1.1
+pytest-cov==7.1.0
+graphifyy==0.9.70            # brings tree-sitter + the grammars lang_treesitter.py uses (Java, C#, TS, Go, ...)
+
+# --- brownfield context tools: semantic search (tools/context/semantic_index.py, model BAAI/bge-small-en-v1.5)
+torch==2.14.0
+sentence-transformers==6.1.0
+faiss-cpu==1.15.1
+
+# --- document knowledge base (tools/context/knowledge_base.py): PDF and Excel text extraction
+pypdf==6.19.0
+openpyxl==3.1.5
+
+# --- corporate networks: pip >= 24.2 and the one-time model download trust the OS certificate store
+truststore==0.10.4

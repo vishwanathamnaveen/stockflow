@@ -1,0 +1,39 @@
+# Service registry, read by every context tool. /setup-context proposes it from disk; a human confirms it.
+# One entry per deployable unit. Any language: the kit reads Python, Java, Kotlin, C#, TypeScript, JavaScript, Go,
+# Ruby, PHP, Rust, Scala, Swift, Groovy and C/C++ (see docs/context-engine/starter-kit/LAYOUT-RECIPES.md).
+#
+#   path          folder of the service, relative to the repo root (default <brownfield.layout.services_root>/<name>;
+#                 "." for a single service at the repo root)
+#   package       source folder inside it: a Python import package, src/main/java, src, ... (optional)
+#   owner         team that approves changes (missing owner -> the "missing_owner" gate forces guarded)
+#   description   one business-language line; it feeds the semantic index, so write it, don't guess it
+#   port          local port, or omit
+#   test_command  how to run its tests with coverage (omit for Python: pytest --cov runs by default)
+#   coverage      {format: jacoco|cobertura|lcov|go|istanbul|coverage-py, path: <report, relative to the service>}
+#   junit         glob of JUnit XML results to collect (optional)
+#   conventions   framework presets: [auto] (default: detected from the code) or names such as
+#                 [spring, jpa, spring-messaging]; custom presets live in config/conventions.yaml
+#   aliases       other names callers use for this service (URL hosts, Feign client names)
+#   openapi       path of its OpenAPI file when it is not contracts/openapi/<name>.json|yaml
+#   exclude       globs (repo-relative) to leave out of its code graph: generated code, fixtures
+host: 127.0.0.1
+services: {}
+#  orders:                                   # Python service under services/orders/
+#    package: orders_service
+#    owner: orders-team
+#    description: Customer orders, order lines and order status.
+#  billing:                                  # Java / Spring service with Maven + JaCoCo
+#    path: billing-service
+#    package: src/main/java
+#    owner: billing-team
+#    description: Invoices, payments and refunds.
+#    test_command: "mvn -q -B test jacoco:report"
+#    coverage: {format: jacoco, path: target/site/jacoco/jacoco.xml}
+#    junit: "target/surefire-reports/*.xml"
+#  web:                                      # TypeScript / NestJS service with Jest
+#    path: apps/web
+#    package: src
+#    owner: web-team
+#    description: Customer-facing storefront API.
+#    test_command: "npx jest --coverage --coverageReporters=lcov"
+#    coverage: {format: lcov, path: coverage/lcov.info}

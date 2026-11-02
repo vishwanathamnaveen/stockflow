@@ -1,0 +1,7 @@
+# Event catalogue: topics, producer, consumers, payload. Must be strict YAML (an unparsable catalogue makes every
+# event-touching change "clarify").
+topics: {}
+#  order.confirmed:
+#    producer: orders
+#    consumers: [notification]
+#    payload: {order_id: str, total_cents: int}

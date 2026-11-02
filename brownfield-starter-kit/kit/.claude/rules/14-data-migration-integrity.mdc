@@ -1,0 +1,11 @@
+---
+description: Additive migrations and cutover integrity
+alwaysApply: false
+globs: "**/migration/**,**/db/**,docs/data-migration/**,docs/migration/**"
+---
+
+# Data migration integrity
+
+Inventory-first. Additive only. Destructive DDL requires quoted story AC.
+Lineage IDs on mapping. Destructive cutover is a human gate (not in this kit).
+Do not edit already-applied migration versions.

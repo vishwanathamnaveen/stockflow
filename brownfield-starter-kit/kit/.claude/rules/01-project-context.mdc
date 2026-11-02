@@ -1,0 +1,10 @@
+---
+description: Fill project name, modules, and glossary after install
+alwaysApply: true
+---
+
+# Project Context
+
+- Read `.claude/config.yaml` for module roots, harness paths, and quality gates.
+- Use the domain in `config.yaml` (`project.domain`); do not assume any other vendor or optical domain.
+- If `config.yaml` still contains placeholders (`<project-name>`), stop and ask the user to fill it before generating product code.

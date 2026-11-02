@@ -1,0 +1,17 @@
+---
+description: Template-owned JUnit generation
+globs:
+  - "**/*Test.java"
+  - "**/*IT.java"
+  - "**/docs/test-cases.md"
+alwaysApply: false
+---
+
+# Test Generation
+
+- Agents extract variables; `agent-owned JUnit tests` own JUnit structure via the template registry.
+- Stop on `# AMBIGUITY` — do not invent test structure.
+- Registry files own harness (`@WebMvcTest`, Mockito, Testcontainers), standard CRUD methods, and the traceability header. Forbidden: `Thread.sleep()`, `new Random()`, `LocalDateTime.now()`, `UUID.randomUUID()` in tests.
+- Agent-owned extras are sibling `*RegressionTest` / `*SecurityTest` classes (or `AGENT-OWNED TEST` blocks) whose IDs exist in `docs/test-cases.md` and `agent_driven_scenarios`.
+- Persist/reuse `artifacts/templates/<resource>-vars.yaml`. Tests must conform to `docs/architecture/stack-conventions.md` before DoD.
+- `/implement-api` writes slice test cases + BR coverage, then scripts, then runs tests (ASSUMPTION-PCC-002 — not blocked by expand PASS). `/expand-test-coverage` expands remaining FR/BR **design** only. Gap scripts for remaining FR/BR run on `/run-tests` after package **Approved**. There is no public `/generate-junit-api-tests` command.

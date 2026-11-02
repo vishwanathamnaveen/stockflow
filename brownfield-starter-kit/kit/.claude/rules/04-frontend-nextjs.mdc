@@ -1,0 +1,13 @@
+---
+description: Next.js UI defaults
+globs: "**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# Frontend — Next.js
+
+- Prefer App Router conventions of the target module in `config.yaml`.
+- Loading, empty, and error states required for every user journey.
+- No hardcoded user-visible strings when the project uses i18n.
+- Typed API client from OpenAPI; do not invent field semantics.
+- FE↔BE wiring is a required gate of `/implement-ui`, not a separate public command.

@@ -1,0 +1,9 @@
+---
+description: Structured test result logs
+alwaysApply: false
+---
+
+# Test Results Logging
+
+- Persist command, environment, timestamp, pass/fail counts, and failure summaries.
+- Do not fabricate metrics. Pointers to JaCoCo/Jest/Playwright reports required.

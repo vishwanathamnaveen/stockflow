@@ -1,0 +1,6 @@
+[run]
+relative_files = True
+branch = True
+
+[json]
+show_contexts = True

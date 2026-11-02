@@ -1,0 +1,37 @@
+# Custom framework conventions (tools/context/conventions.py). Built-in presets cover FastAPI, Flask, Spring
+# (MVC, Feign, RestTemplate/WebClient, Kafka/RabbitMQ/JMS), JPA, JAX-RS, Micronaut, ASP.NET Core, EF Core, NestJS,
+# Express, TypeORM, Go net/http / gin / echo / chi, Laravel and Symfony: `python tools/context/conventions.py --list`.
+#
+# Add a preset here when the codebase uses an in-house framework, then name it under `conventions:` in
+# config/services.yaml, or give it a `detect` regex so `auto` picks it up. Rules are regular expressions over:
+#   decorator        a function/method's own annotations (text without @ / #[ / [)
+#   class_decorator  the annotations of the class that owns the method
+#   source           the file text (call-style APIs); matches are attributed to the enclosing symbol
+# Named groups: method, path, args (annotation arguments: the path is the first string, or path= / value=),
+# prefix, topic, const (a constant whose string value is the topic), target, url, handler, class, table, key.
+presets: {}
+#  acme-rpc:
+#    detect: '\bcom\.acme\.rpc\b'            # optional: lets `auto` select this preset
+#    languages: [java, kotlin]               # optional: only for services in these languages
+#    routes:
+#      - on: decorator
+#        match: '^AcmeEndpoint\((?P<args>.*)\)$'
+#        method_in_args: 'verb\s*=\s*"(?P<method>\w+)"'
+#        method: POST                        # default when the annotation names no method
+#        prefix: {on: class_decorator, match: '^AcmeService\((?P<args>.*)\)$'}
+#    publishes:
+#      - on: source
+#        match: '\bbus\.emit\(\s*"(?P<topic>[^"]+)"'
+#    consumes:
+#      - on: decorator
+#        match: '^OnAcmeEvent\(\s*"(?P<topic>[^"]+)"'
+#    clients:
+#      - on: class_decorator                 # declarative client: its methods' routes are the calls
+#        match: '^AcmeClient\(\s*"(?P<target>[^"]+)"'
+#    tables:
+#      - on: class_decorator
+#        match: '^AcmeTable\(\s*"(?P<table>[^"]+)"'
+#    config_keys:
+#      - on: source
+#        match: 'acmeConfig\.get\(\s*"(?P<key>[^"]+)"'
+#    migrations: ["**/db/acme-migrations"]

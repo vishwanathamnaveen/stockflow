@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeSubmitPrompt": [
+      {
+        "command": "node .claude/hooks/scaffold-from-command.mjs",
+        "failClosed": false
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": "node .claude/hooks/verify-artifacts.mjs",
+        "failClosed": true,
+        "matcher": "git commit|git push"
+      }
+    ]
+  }
+}

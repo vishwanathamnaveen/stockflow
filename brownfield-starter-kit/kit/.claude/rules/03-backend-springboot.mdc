@@ -1,0 +1,13 @@
+---
+description: Backend Spring Boot (agent-owned)
+globs: modules/api/**/*
+---
+
+# Backend Spring Boot
+
+- Default stack: Java 21, Spring Boot 3 per `docs/architecture/stack-conventions.md`.
+- **Agent-owned implement:** no `java_master_templates/` or `render_check.py` in kit DoD.
+- Layering: controller → service → repository; centralized error envelope; validation on inputs.
+- Persist OpenAPI/DTO alignment via api-agent contract sync during `/implement-api`.
+- Unit tests required; coverage floor from `config.yaml` `quality_gates.api_unit_line_coverage_min`.
+- No secrets in source; mask PII in logs.

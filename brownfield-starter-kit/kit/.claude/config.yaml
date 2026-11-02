@@ -1,0 +1,174 @@
+# Filled in by /setup-context (context-bootstrap-agent) from the layout plan you confirm. Replace every <...>.
+
+project:
+  name: "<project-name>"
+  domain: "<business-domain>"
+
+modules:
+  api: "<path of the pilot service>"           # brownfield pilot service (see brownfield.enabled_services)
+  ui: "n/a"
+  openapi: "contracts/openapi/<pilot-service>.json"
+  source: "<path of the pilot service>/<package>"   # its source folder (Python package, src/main/java, src, ...)
+  infra: "n/a"
+
+intake:
+  transcripts: artifacts/intake/transcripts/
+  notes: artifacts/intake/
+  supporting_docs: artifacts/intake/supporting/
+  story_sources: docs/stories/
+
+brd_drafts: artifacts/brd/
+sprints: artifacts/sprints/
+story_packs: docs/sprint<N>/userstory/
+
+docs:
+  feature_notes: docs/feature.md
+  test_cases: docs/test-cases.md
+  test_cases_br_coverage: docs/test-cases-br-coverage.md
+  test_matrix: docs/test-matrix.md
+  architecture_proposals: docs/adr/
+  adr: docs/adr/
+  business_rules: docs/business-rules.md
+  harness_progress: docs/harness/progress.md
+  harness_decisions: docs/harness/decisions.md
+
+artifacts:
+  audit: artifacts/audit/
+  application_summary_html: artifacts/application-summary.html
+  application_summary_pdf: artifacts/application-summary.pdf
+  test_results: artifacts/test-results-{date}.md
+  e2e_test_results: artifacts/e2e-test-results-{timestamp}.md
+  issue_logs: artifacts/issues/
+  diagrams: artifacts/diagrams/
+
+quality_gates:
+  api_unit_line_coverage_min: 0.70
+  api_unit_branch_coverage_target: 0.70
+  ui_coverage_min: 0.70
+  max_unwaived_high_cves: 0
+  template_render_check: optional
+
+execution:
+  max_iterations: 3
+
+pipeline:
+  brd_command: generate-brd
+  architecture_command: propose-architecture
+  plan_commands: [plan-sprint]
+  ui_design_command: generate-ui-design
+  execute: [implement-api, implement-ui, expand-test-coverage, run-tests, run-eval, close-eval-gaps, review-changes, application-summary]
+  eval_fix_command: close-eval-gaps
+  brownfield: [setup-context, build-context, implement-change, refresh-context, evaluate-change, evaluate-pilot]
+
+local_stack:
+  api_health_url: "<http://127.0.0.1:8000/health or n/a>"
+  ui_health_url: "n/a"
+  start_script: "<how the team starts the app locally, or n/a>"
+  verify_script: "<smoke / seed script, or n/a>"
+  stop_script: "<how to stop it, or n/a>"
+
+evals:
+  root: evals/product
+  rule_source: docs/business-rules.md
+  rule_id_pattern: "(FR|BR|NFR|INT)-[0-9]+"
+  status: evals/product/STATUS.md
+  results: evals/product/results/
+  factory_root: evals/factory
+  test_commands:
+    api: "python scripts/run_tests.py"     # runs each service's test_command (config/services.yaml) + coverage
+    ui: "n/a"
+    e2e: "<e2e command, or n/a>"
+
+# --------------------------------------------------------------------------- brownfield change path
+# /build-context (context-builder-agent) -> Context Manifest -> /implement-change (change-agent).
+# Read by tools/context/*.py and by both agents. Rule: .claude/rules/40-brownfield-change-governance.mdc
+brownfield:
+  layout:                              # where the tools look for code (tools/context/common.py)
+    services_root: services            # default folder of service <name>: <services_root>/<name>; a service's own
+                                       # `path:` in config/services.yaml wins ("." = a single service at the root)
+    common_root: libs/common           # shared library graphed as target "common"; null when the repo has none
+    common_package: null               # its source folder; null = its only Python package, else the folder itself
+    exclude: []                        # repo-relative globs left out of every code graph (generated code, fixtures)
+  # Languages are detected per file (tools/context/lang_*.py); framework idioms (routes, events, REST clients,
+  # tables, config keys) come from convention presets per service (tools/context/conventions.py, `conventions:` in
+  # config/services.yaml, custom presets in config/conventions.yaml).
+  tests:
+    patterns: []                       # globs over "/" + repo path marking test code; [] = built-in defaults
+                                       # (tests/, test/, src/test/, *Test.java, *_test.go, *.spec.ts, *Tests.cs, ...)
+    e2e_paths: []                      # end-to-end suites searched for the change's APIs / topics; [] = tests/e2e
+  business_rules:
+    files: [docs/business-rules.md]    # markdown tables | BR-nnn | rule | implemented in |; add domain-rules files
+    id_pattern: 'BR-\d+'               # rule ids (also matched in docstrings / Javadoc and task text)
+  test_cases: []                       # external QA test cases linked to the change (tools/context/test_cases.py):
+                                       #   - {path: ../<qa-repo>/testcases, format: zephyr-json}
+                                       #   - {path: ../<qa-repo>/features, format: gherkin}
+                                       #   - {path: qa/export.csv, format: csv}
+  docs:
+    roots: [docs]                      # markdown searched for references (each service's docs/ + README.md too)
+  checks:                              # required_checks commands in manifests; null = e2e detected from tests/e2e,
+                                       # contracts not checked
+    e2e: null                          # e.g. "mvn -q verify -Pe2e", "npx playwright test"
+    contracts: null                    # e.g. "mvn -q -Pcontracts verify", "npm run contracts:check"
+  config_files: []                     # where configuration keys are defined; [] = application*.yml|properties,
+                                       # appsettings*.json, bootstrap*.yml, config/*.yml
+  migrations:
+    paths: []                          # schema-migration folders the presets do not know (Flyway, Liquibase,
+                                       # Alembic, EF Core, Prisma, Rails are detected)
+  service_graph:
+    ops_paths: [/health]               # operational endpoints left out of the API list (add /metrics, /ready, ...)
+  enabled_services: []                 # services where /implement-change may write code; others are analyze-only.
+                                       # Starts empty: a human adds the pilot service after /setup-context
+  confidence:
+    execute: 0.80                      # >= and risk low           -> fast-track
+    plan: 0.60                         # <  (or blocking unknown)  -> clarify (no code)
+  risk_levels:                         # upper bound of each band (score from tools/context/manifest.py)
+    low: 2
+    medium: 6
+    high: 10                           # above -> critical
+  transitive_depth: 3
+  external_catalog: null               # service catalog / API-gateway registry / event-schema registry / deployment
+                                       # inventory. null = repo + traces only: consumers are "not found", never
+                                       # "proven absent" (rule 40.12)
+  knowledge_exclude:                   # docs that describe the tooling itself: not knowledge about the system
+    - "docs/context-engine/*"
+    - "docs/harness/*"
+  semantic:                            # tools/context/semantic_index.py — FAISS (dense) + BM25, reciprocal-rank fusion
+    model: BAAI/bge-small-en-v1.5      # local sentence-transformers model, CPU
+    query_prefix: "Represent this sentence for searching relevant passages: "
+    top_k: 8
+    min_dense_score: 0.55              # candidates below this are ignored
+    required: true                     # every manifest runs semantic search (also with explicit --seed, as a
+                                       # cross-check) and the knowledge base; missing faiss/sentence-transformers or
+                                       # a missing/torn index -> manifest.py exits 5, writes nothing. --semantic off refused
+    # candidates become seeds only when name matching finds nothing and no --seed was given; semantic-only landing
+    # points add a major unknown and can never be fast-track
+  knowledge_base:                      # tools/context/knowledge_base.py — retrieval over PDFs / Excel / CSV / notes
+    roots: [knowledge]                 # drop documents here; refresh.py detects added/changed/removed files by content
+    chunk_chars: 1200                  # passage size (pdf pages and sheet row groups are split above this)
+    overlap: 150
+    top_k: 5                           # passages recorded in a manifest's knowledge.documents
+    min_dense_score: 0.60              # passages below this are not recorded (bge-small scores unrelated text ~0.5)
+    # passages are context for judgement, never scope; injection-shaped or sensitive-data passages are excluded
+  graphs:
+    code: "services/<service>/graphify-out/graph.json"
+    overall_code: "graphify-out/graph.json"
+    service: "graphs/service-graph.json"
+    quality: "var/quality/<service>-coverage.json"
+    runtime: "var/traces/<service>.jsonl"
+    memory: "artifacts/memory/episodes.jsonl"
+  changes_root: "artifacts/changes/<task-id>/"
+  tools:
+    refresh: "python tools/context/refresh.py --stale [--tests]   (--check [--committed-only] reports only)"
+    manifest: "python tools/context/manifest.py --task-file <file> --id <task-id> [--seed ...]"
+    verify_scope: "python tools/context/manifest.py --verify-scope <task-id>"
+    service_graph: "python tools/context/service_graph.py"
+    enrich_graph: "python tools/context/enrich_graph.py [<service>|common|overall]"
+    semantic_index: "python tools/context/semantic_index.py build | search \"<text>\" [--expand ...] [--seeds]"
+    record_episode: "python tools/context/record_episode.py <task-id> --outcome <success|failed|abandoned|clarify>"
+    evaluate: "python tools/context/evaluate.py change <task-id> | pilot [--since YYYY-MM-DD] [--out <file>]"
+  evaluation:                          # tools/context/evaluate.py exit gates (/evaluate-change, /evaluate-pilot)
+    min_scope_recall: 0.90             # mean: changed files the manifest predicted (tests excluded)
+    min_scope_precision: 0.50          # mean: predicted files that really changed (warning only)
+    max_fast_track_incidents: 0        # fast-track that failed or changed files outside the manifest
+    min_success_rate: 0.80             # executed changes ending in success
+    min_episodes: 5                    # fewer -> pilot verdict ATTENTION at best

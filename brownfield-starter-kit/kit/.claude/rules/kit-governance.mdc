@@ -1,0 +1,35 @@
+---
+description: Claude Code starter kit always-on governance
+alwaysApply: true
+---
+
+# Claude Code — Starter Kit Governance
+
+Kit-specific always-on supplement. Full prime directives, orchestration, model routing, and human gates: kit root [CLAUDE.md](../../CLAUDE.md). Operator map: [CLAUDE-FLOW.md](../../CLAUDE-FLOW.md). Scope: [KIT-SCOPE.md](../../KIT-SCOPE.md).
+
+## Command spine (12 shipped)
+
+```
+/generate-brd → /propose-architecture → /plan-sprint
+ → /generate-ui-design + /implement-api → /implement-ui
+ → /expand-test-coverage → /run-tests → /run-eval
+ → /close-eval-gaps (loop until fix-queue clear)
+ → /review-changes → /application-summary
+```
+
+## Brownfield path (rule 40)
+
+```
+/build-context <task>  → Context Manifest + impact + risk + workflow + change plan  (artifacts/changes/<id>/)
+  → [gate per workflow: fast-track none | plan-approve-execute / guarded: change-plan Approved]
+  → /implement-change <id>  → tests + judge + repair loop → ledger + memory → refresh graphs
+```
+
+## Human gates
+
+BRD Accepted → plan Approved → test-package Approved → completeness ledger + fix-queue → review.
+
+## Implement note
+
+This repo is Python/FastAPI: follow the existing code idioms. Spring/Next.js per `docs/architecture/stack-conventions.md`
+applies to greenfield projects only (not shipped here). No J2 template render pipeline in kit DoD.

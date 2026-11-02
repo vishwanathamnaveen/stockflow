@@ -1,0 +1,14 @@
+# --- brownfield context engine (appended by the starter kit installer)
+__pycache__/
+*.pyc
+.venv/
+var/
+.coverage*
+!.coveragerc
+.pytest_cache/
+**/graphify-out/cache/
+**/graphify-out/20*/
+**/graphify-out/.graphify_root
+graphs/semantic/
+graphs/kb/
+.venv-context/

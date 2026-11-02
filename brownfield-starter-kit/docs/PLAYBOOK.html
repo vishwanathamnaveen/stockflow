@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brownfield Starter Kit — Stakeholder Playbook</title>
+<style>
+  :root {
+    --teal-900: #0b3b3c; --teal-700: #0f5e5f; --teal-500: #1a8a8b; --teal-100: #e3f2f2; --teal-50: #f2f9f9;
+    --ink: #1d2626; --muted: #566464; --line: #d6e2e2; --bg: #ffffff; --panel: #f7fafa;
+    --green: #1f7a3d; --green-bg: #e6f4ea; --amber: #8a5a00; --amber-bg: #fff4dc;
+    --red: #a32020; --red-bg: #fde8e8; --blue: #1f4f8a; --blue-bg: #e7effa; --grey-bg: #eef1f1;
+    --radius: 10px; --shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 14px rgba(0,0,0,.04);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 16px; }
+  body { margin: 0; font: 15.5px/1.6 "Aptos", "Segoe UI", system-ui, -apple-system, sans-serif; color: var(--ink);
+         background: var(--bg); }
+  code, kbd { font: 13.5px/1.4 "Cascadia Code", Consolas, "SF Mono", monospace; background: var(--grey-bg);
+              padding: 1px 5px; border-radius: 4px; }
+  pre { font: 13.5px/1.55 "Cascadia Code", Consolas, monospace; background: #0f2324; color: #e6f2f2;
+        padding: 14px 16px; border-radius: var(--radius); overflow-x: auto; margin: 12px 0; }
+  pre .c { color: #8fb3b3; }
+  a { color: var(--teal-700); }
+  h1, h2, h3, h4 { line-height: 1.25; color: var(--teal-900); }
+  h2 { font-size: 1.65rem; margin: 0 0 6px; }
+  h3 { font-size: 1.15rem; margin: 26px 0 8px; }
+  h4 { font-size: 1rem; margin: 14px 0 6px; }
+  p { margin: 8px 0; }
+  .layout { display: grid; grid-template-columns: 270px 1fr; min-height: 100vh; }
+  nav.side { position: sticky; top: 0; height: 100vh; overflow-y: auto; background: var(--teal-900); color: #d9ecec;
+             padding: 22px 16px 30px; }
+  nav.side .brand { font-weight: 700; color: #fff; font-size: 1.05rem; margin-bottom: 2px; }
+  nav.side .sub { font-size: .8rem; color: #9cc4c4; margin-bottom: 18px; }
+  nav.side .grp { font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; color: #7fb0b0; margin: 16px 8px 4px; }
+  nav.side a { display: block; color: #d9ecec; text-decoration: none; padding: 5px 10px; border-radius: 6px;
+               font-size: .9rem; }
+  nav.side a:hover { background: rgba(255,255,255,.08); }
+  nav.side a.active { background: var(--teal-500); color: #fff; }
+  main { padding: 0 48px 80px; max-width: 1120px; }
+  section { padding: 44px 0 10px; border-bottom: 1px solid var(--line); }
+  section:last-of-type { border-bottom: 0; }
+  .lede { color: var(--muted); font-size: 1.02rem; margin-bottom: 14px; max-width: 820px; }
+  .hero { background: linear-gradient(135deg, var(--teal-900), var(--teal-700)); color: #fff; margin: 0 -48px;
+          padding: 54px 48px 44px; }
+  .hero h1 { color: #fff; font-size: 2.2rem; margin: 0 0 10px; }
+  .hero p { color: #d4eaea; font-size: 1.1rem; max-width: 820px; }
+  .hero .meta { font-size: .85rem; color: #9fcaca; margin-top: 18px; }
+  .hero .btns { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn { display: inline-block; padding: 8px 14px; border-radius: 8px; background: #fff; color: var(--teal-900);
+         text-decoration: none; font-weight: 600; font-size: .9rem; border: 0; cursor: pointer; font-family: inherit; }
+  .btn.ghost { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.5); }
+  .grid { display: grid; gap: 14px; }
+  .g2 { grid-template-columns: repeat(2, 1fr); } .g3 { grid-template-columns: repeat(3, 1fr); }
+  .g4 { grid-template-columns: repeat(4, 1fr); }
+  .card { background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px;
+          box-shadow: var(--shadow); }
+  .card h4 { margin-top: 0; }
+  .card.tint { background: var(--teal-50); }
+  .kpi { text-align: center; }
+  .kpi .n { font-size: 1.9rem; font-weight: 700; color: var(--teal-700); }
+  .kpi .l { font-size: .85rem; color: var(--muted); }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: .92rem; }
+  th, td { text-align: left; vertical-align: top; padding: 9px 11px; border-bottom: 1px solid var(--line); }
+  th { background: var(--teal-100); color: var(--teal-900); font-weight: 600; }
+  tr:nth-child(even) td { background: #fbfdfd; }
+  .tag { display: inline-block; padding: 1px 9px; border-radius: 999px; font-size: .78rem; font-weight: 600;
+         white-space: nowrap; }
+  .t-green { background: var(--green-bg); color: var(--green); } .t-amber { background: var(--amber-bg); color: var(--amber); }
+  .t-red { background: var(--red-bg); color: var(--red); } .t-blue { background: var(--blue-bg); color: var(--blue); }
+  .t-grey { background: var(--grey-bg); color: var(--muted); }
+  .callout { border-left: 4px solid var(--teal-500); background: var(--teal-50); padding: 12px 16px;
+             border-radius: 0 var(--radius) var(--radius) 0; margin: 14px 0; }
+  .callout.warn { border-color: #d39a1c; background: var(--amber-bg); }
+  .callout.stop { border-color: var(--red); background: var(--red-bg); }
+  .callout b:first-child { color: var(--teal-900); }
+  /* flow diagram */
+  .flow { display: flex; align-items: stretch; gap: 0; flex-wrap: wrap; margin: 18px 0; }
+  .flow .step { flex: 1 1 140px; background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius);
+                padding: 12px; text-align: center; box-shadow: var(--shadow); min-width: 130px; }
+  .flow .step .k { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .flow .step .t { font-weight: 700; color: var(--teal-900); margin: 2px 0; font-size: .95rem; }
+  .flow .step .d { font-size: .8rem; color: var(--muted); }
+  .flow .step.human { background: var(--amber-bg); border-color: #ecd08c; }
+  .flow .step.once { background: var(--blue-bg); border-color: #c4d6ef; }
+  .flow .step.end { background: var(--green-bg); border-color: #bfe0c9; }
+  .flow .arrow { align-self: center; color: var(--teal-500); font-size: 1.4rem; padding: 0 6px; }
+  .legend { font-size: .82rem; color: var(--muted); display: flex; gap: 16px; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 3px;
+                         margin-right: 6px; vertical-align: -1px; border: 1px solid var(--line); }
+  .legend .l1::before { background: var(--blue-bg); } .legend .l2::before { background: var(--bg); }
+  .legend .l3::before { background: var(--amber-bg); } .legend .l4::before { background: var(--green-bg); }
+  /* architecture */
+  .arch { display: grid; gap: 10px; margin: 16px 0; }
+  .arch .layer { border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; background: var(--panel); }
+  .arch .layer > .h { font-size: .74rem; text-transform: uppercase; letter-spacing: .07em; color: var(--muted);
+                      font-weight: 700; margin-bottom: 8px; }
+  .arch .row { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .arch .box { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px;
+               font-size: .84rem; }
+  .arch .box b { display: block; color: var(--teal-900); font-size: .9rem; }
+  .arch .box span { color: var(--muted); }
+  .arch .down { text-align: center; color: var(--teal-500); font-size: .85rem; font-weight: 600; }
+  .arch .l-src { background: var(--grey-bg); } .arch .l-build { background: var(--blue-bg); }
+  .arch .l-engine { background: var(--teal-100); } .arch .l-agents { background: var(--amber-bg); }
+  .arch .l-out { background: var(--green-bg); }
+  .split { display: grid; grid-template-columns: 1fr 60px 1fr; gap: 10px; align-items: center; margin: 14px 0; }
+  .split .mid { text-align: center; color: var(--teal-500); font-weight: 700; }
+  /* decision tree */
+  .tree { display: grid; gap: 8px; margin: 14px 0; }
+  .tree .q { display: grid; grid-template-columns: 34px 1fr 210px; gap: 10px; align-items: center; background: var(--bg);
+             border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 14px; }
+  .tree .q .num { width: 28px; height: 28px; border-radius: 50%; background: var(--teal-700); color: #fff;
+                  display: grid; place-items: center; font-weight: 700; font-size: .85rem; }
+  .tree .q .res { text-align: right; }
+  details { border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 14px; margin: 8px 0;
+            background: var(--bg); }
+  details summary { cursor: pointer; font-weight: 600; color: var(--teal-900); }
+  details[open] summary { margin-bottom: 6px; }
+  /* checklist */
+  .check { list-style: none; padding: 0; margin: 6px 0; }
+  .check li { padding: 5px 0 5px 30px; position: relative; border-bottom: 1px dashed var(--line); font-size: .92rem; }
+  .check input { position: absolute; left: 4px; top: 8px; width: 16px; height: 16px; accent-color: var(--teal-700); }
+  .check li.done { color: var(--muted); text-decoration: line-through; }
+  .progress { height: 8px; background: var(--grey-bg); border-radius: 999px; overflow: hidden; margin: 6px 0 10px; }
+  .progress > div { height: 100%; background: var(--teal-500); width: 0; transition: width .2s; }
+  .small { font-size: .85rem; color: var(--muted); }
+  .R { color: var(--teal-700); font-weight: 700; } .A { color: var(--red); font-weight: 700; }
+  .C { color: var(--blue); } .I { color: var(--muted); }
+  footer { color: var(--muted); font-size: .82rem; padding: 30px 0; }
+  @media (max-width: 1000px) {
+    .layout { grid-template-columns: 1fr; } nav.side { position: static; height: auto; }
+    main { padding: 0 20px 60px; } .hero { margin: 0 -20px; padding: 36px 20px; }
+    .g3, .g4 { grid-template-columns: 1fr 1fr; } .split { grid-template-columns: 1fr; } .tree .q { grid-template-columns: 34px 1fr; }
+    .tree .q .res { grid-column: 2; text-align: left; }
+  }
+  @media (max-width: 640px) { .g2, .g3, .g4, .arch .row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="side" aria-label="Playbook sections">
+  <div class="brand">Brownfield Starter Kit</div>
+  <div class="sub">Stakeholder playbook · kit 2.2.0</div>
+  <div class="grp">Start here</div>
+  <a href="#overview">Overview</a>
+  <a href="#why">Why we use it</a>
+  <a href="#journey">The journey at a glance</a>
+  <div class="grp">Understand</div>
+  <a href="#architecture">Architecture</a>
+  <a href="#search">How search works</a>
+  <a href="#concepts">Key concepts</a>
+  <a href="#gates">Workflows &amp; gates</a>
+  <a href="#guardrails">Ground rules</a>
+  <div class="grp">Do</div>
+  <a href="#setup">Phase 1 · Setup</a>
+  <a href="#change">Phase 2 · A change request</a>
+  <a href="#pilot">Phase 3 · Pilot &amp; evaluation</a>
+  <div class="grp">Reference</div>
+  <a href="#artifacts">Where things live</a>
+  <a href="#commands">Command cheat sheet</a>
+  <a href="#toolchain">Toolchain problems</a>
+  <a href="#faq">Limitations &amp; FAQ</a>
+  <a href="#checklists">Checklists</a>
+</nav>
+
+<main>
+
+<!-- ======================================================================= OVERVIEW -->
+<section id="overview" style="padding-top:0;border:0">
+  <div class="hero">
+    <h1>Changing existing code with AI, safely and measurably</h1>
+    <p>The Brownfield Starter Kit lets Claude Code work on an <b>existing</b> codebase without guessing. A requirement
+       or bug never goes straight to code. The kit first builds an evidence-based map of what the change touches.
+       That map decides how much human approval the change needs, and every change ends with a measured result.</p>
+    <div class="btns">
+      <a class="btn" href="#journey">See the journey</a>
+      <a class="btn ghost" href="#architecture">See the architecture</a>
+    </div>
+    <div class="meta">For: sponsors, product owners, engineers, tech leads, service owners, QA and security.
+       Source of truth: the kit's guides <code style="background:rgba(255,255,255,.12);color:#fff">docs/01-SETUP.md</code>,
+       <code style="background:rgba(255,255,255,.12);color:#fff">02-CHANGE-FLOW.md</code>,
+       <code style="background:rgba(255,255,255,.12);color:#fff">03-EVALUATION.md</code> and rule 40.</div>
+  </div>
+
+  <h3>The idea in three sentences</h3>
+  <div class="grid g3">
+    <div class="card tint"><h4>1 · Evidence first</h4>
+      <p>For every request the kit builds a <b>Context Manifest</b>: the code, services, APIs, events, tests, business
+         rules, documents and history the change touches, with computed <b>confidence</b> and <b>risk</b>.</p></div>
+    <div class="card tint"><h4>2 · Risk decides the gate</h4>
+      <p>The manifest selects a <b>workflow</b>: low-risk changes go fast, while contract, data, security and
+         multi-service changes need plan approval and owner sign-off. Nobody picks a cheaper path by hand.</p></div>
+    <div class="card tint"><h4>3 · Every change is measured</h4>
+      <p>Did the manifest predict the files that really changed? Were the tests run? Each change gets a scorecard,
+         and the pilot ends with a <b>GO / EXTEND / STOP</b> decision based on the numbers.</p></div>
+  </div>
+</section>
+
+<!-- ======================================================================= WHY -->
+<section id="why">
+  <h2>Why we use it</h2>
+  <p class="lede">AI coding assistants are fast on new code. On a large existing system the expensive mistakes come
+     from what they <i>don't</i> see: a consumer in another service, an event subscriber, a business rule, a missing
+     test. The kit turns that blind spot into something you can check.</p>
+  <table>
+    <tr><th style="width:34%">Without the kit</th><th style="width:33%">With the kit</th><th>Who benefits</th></tr>
+    <tr><td>The assistant edits whatever looks relevant</td><td>Edits are limited to the manifest's files (the
+        <b>blast radius</b>); anything more is an explicit, re-approved scope change</td><td>Engineers, service owners</td></tr>
+    <tr><td>Hidden consumers break after release</td><td>Cross-service callers, event subscribers and data lineage are
+        listed, and their test suites run as regression</td><td>Service owners, QA, ops</td></tr>
+    <tr><td>Approval effort is the same for every change, or depends on gut feel</td><td>Approval is proportional
+        to computed risk; non-negotiable gates for contracts, data, security and missing owners</td><td>Tech leads, security</td></tr>
+    <tr><td>"It worked" is anecdotal</td><td>Per-change scorecard and pilot metrics: scope recall, success rate,
+        fast-track incidents</td><td>Sponsors, leadership</td></tr>
+    <tr><td>Business rules get re-invented by the assistant</td><td>No invented rules, owners or tests. Gaps become
+        questions for humans</td><td>Product owners, compliance</td></tr>
+  </table>
+  <h3>Code first, not infrastructure first</h3>
+  <p>Many code-intelligence starter kits begin with infrastructure: hosted services that must be set up, connected
+     and kept running before the first question about the code can be answered. This kit starts from the code
+     instead and needs no infrastructure of its own. Every graph and index is built by a Python script in <code>tools/context/</code> and saved
+     as a file in the repository, so a developer can open it, read the script that made it, and rebuild it.</p>
+  <table>
+    <tr><th style="width:22%"></th><th style="width:39%">Infrastructure-first kits</th><th>This kit (code first)</th></tr>
+    <tr><td>What you run</td><td>Hosted services to provision, secure, back up and upgrade</td>
+        <td>Python scripts on CPU. Graphs are JSON, the manifest is YAML, the search index is a local FAISS file</td></tr>
+    <tr><td>Inspecting the data</td><td>Through each service's own query tools or console</td>
+        <td>Open <code>graph.json</code> or <code>docs.jsonl</code> in an editor; diff them like any other file</td></tr>
+    <tr><td>Explaining a result</td><td>Retrieval happens inside the services; scores are often not kept</td>
+        <td>Every query, hit and score is written to the manifest's <code>retrieval</code> section, and every
+            impacted symbol carries a <code>why</code> (for example <code>code graph: A calls B</code>)</td></tr>
+    <tr><td>Reproducibility</td><td>Depends on the state of the services at query time</td>
+        <td>Inputs are content-hashed; a stale graph or index is detected and blocks the next step</td></tr>
+    <tr><td>Where code goes</td><td>Wherever the services are hosted</td>
+        <td>Nowhere. Nothing leaves the machine after the one-time model download</td></tr>
+    <tr><td>Learning curve for a developer</td><td>Each service's query language and configuration</td>
+        <td>A few hundred lines of Python per tool, readable top to bottom</td></tr>
+  </table>
+  <div class="callout warn"><b>The trade-off.</b> There is no ad-hoc graph query language: the traversals the kit
+     needs are written in Python. The FAISS index is an exact in-memory search, which suits repository-sized
+     corpora (the code notes it is fine below about a million documents), not an organisation-wide search service.
+     See <a href="#search">How search works</a> for the whole retrieval flow.</div>
+  <div class="callout"><b>What it is not.</b> It is not an autonomous deployer. The agent never commits or pushes;
+     a human reviews every diff. It is not a substitute for service owners. It tells them exactly what to look at.</div>
+</section>
+
+<!-- ======================================================================= JOURNEY -->
+<section id="journey">
+  <h2>The journey at a glance</h2>
+  <p class="lede">Setup happens once per repository. Every change then runs the same loop. At the end of the pilot,
+     the numbers decide whether more services are opened up.</p>
+
+  <h3>Once per repository</h3>
+  <div class="flow">
+    <div class="step once"><div class="k">Install</div><div class="t">install.py</div><div class="d">copy the kit, discover the layout</div></div>
+    <div class="arrow">→</div>
+    <div class="step once"><div class="k">Toolchain</div><div class="t">setup_toolchain.py</div><div class="d">locked packages + model</div></div>
+    <div class="arrow">→</div>
+    <div class="step once"><div class="k">Build intelligence</div><div class="t">/setup-context</div><div class="d">code &amp; service graphs, search index</div></div>
+    <div class="arrow">→</div>
+    <div class="step human"><div class="k">Human</div><div class="t">Confirm &amp; enable</div><div class="d">owners, descriptions, pilot service</div></div>
+  </div>
+
+  <h3>Every change request</h3>
+  <div class="flow">
+    <div class="step"><div class="k">1 · Analyse</div><div class="t">/build-context</div><div class="d">manifest, impact, risk, plan</div></div>
+    <div class="arrow">→</div>
+    <div class="step human"><div class="k">2 · Gate</div><div class="t">Approval</div><div class="d">chosen by the workflow</div></div>
+    <div class="arrow">→</div>
+    <div class="step"><div class="k">3 · Build</div><div class="t">/implement-change</div><div class="d">tests first, code, scope check</div></div>
+    <div class="arrow">→</div>
+    <div class="step human"><div class="k">Human</div><div class="t">Diff review</div><div class="d">always</div></div>
+    <div class="arrow">→</div>
+    <div class="step end"><div class="k">4 · Measure</div><div class="t">/evaluate-change</div><div class="d">PASS / ATTENTION / FAIL</div></div>
+  </div>
+
+  <h3>End of pilot</h3>
+  <div class="flow">
+    <div class="step"><div class="k">≥ 5 changes</div><div class="t">/evaluate-pilot</div><div class="d">aggregate metrics vs exit gates</div></div>
+    <div class="arrow">→</div>
+    <div class="step end"><div class="k">Decision</div><div class="t">GO · EXTEND · STOP</div><div class="d">a human widens <code>enabled_services</code></div></div>
+  </div>
+  <div class="legend"><span class="l1">one-time</span><span class="l2">automated by the kit</span><span class="l3">human decision</span><span class="l4">measured outcome</span></div>
+  <p class="small"><code>/refresh-context</code> keeps graphs current between steps. It runs automatically inside
+     <code>/implement-change</code>, and by hand after pulling or switching branches.</p>
+</section>
+
+<!-- ======================================================================= ARCHITECTURE -->
+<section id="architecture">
+  <h2>Architecture</h2>
+  <p class="lede">The kit has two halves. A <b>context engine</b> of deterministic Python tools turns the repository
+     into queryable graphs and computes facts. <b>Claude Code agents</b> add judgement on top and must obey what the
+     engine wrote down. Everything runs locally and lives as files in the repository.</p>
+
+  <h3>Design principles</h3>
+  <div class="grid g3">
+    <div class="card tint"><h4>Tools produce facts, agents add judgement</h4><p>Files, symbols, consumers, tests,
+      confidence, risk and workflow are computed by scripts in <code>tools/context/</code>, reproducibly. Agents can
+      only append unknowns, conflicts and notes, raise risk or lower confidence.</p></div>
+    <div class="card tint"><h4>Everything is a file</h4><p>Graphs are JSON, the manifest is YAML, the search index is a
+      local FAISS file. No server, no database, and no code leaves the machine. The embedding model downloads once.</p></div>
+    <div class="card tint"><h4>Freshness is checked, not assumed</h4><p>Every artifact carries content hashes of its
+      inputs, the engine version and a build-config hash. Stale graphs stop <code>/build-context</code> and
+      <code>/implement-change</code> until refreshed.</p></div>
+  </div>
+
+  <h3>Layers, from source to decision</h3>
+  <div class="arch">
+    <div class="layer l-src"><div class="h">Sources (what already exists in the repo)</div>
+      <div class="row">
+        <div class="box"><b>Service code</b><span>any supported language</span></div>
+        <div class="box"><b>Contracts</b><span>OpenAPI, <code>events.yaml</code></span></div>
+        <div class="box"><b>Config</b><span><code>services.yaml</code>, app config</span></div>
+        <div class="box"><b>Tests &amp; coverage</b><span>per test where recorded</span></div>
+        <div class="box"><b>Docs &amp; rules</b><span><code>business-rules.md</code>, <code>knowledge/</code></span></div>
+        <div class="box"><b>History</b><span>git, runtime traces, past episodes</span></div>
+      </div></div>
+    <div class="down">▼ built once, then refreshed incrementally (<code>/setup-context</code>, <code>/refresh-context</code>)</div>
+    <div class="layer l-build"><div class="h">1 · System intelligence (tools)</div>
+      <div class="row">
+        <div class="box"><b>Code graph</b><span>graphify per service + <code>enrich_graph.py</code></span></div>
+        <div class="box"><b>Service graph</b><span><code>service_graph.py</code>: REST + event edges</span></div>
+        <div class="box"><b>Quality graph</b><span><code>run_tests.py</code>: tests → lines</span></div>
+        <div class="box"><b>Semantic index</b><span><code>semantic_index.py</code>: FAISS + BM25</span></div>
+        <div class="box"><b>Knowledge base</b><span><code>knowledge_base.py</code>: PDF, Excel, CSV, notes</span></div>
+      </div></div>
+    <div class="down">▼ queried per request</div>
+    <div class="layer l-engine"><div class="h">2 · Context engine (tool)</div>
+      <div class="row">
+        <div class="box"><b><code>manifest.py</code></b><span>seeds → graph expansion → impact → confidence, risk, gates, workflow</span></div>
+        <div class="box"><b><code>refresh.py</code></b><span>freshness check, incremental rebuild, scope verification</span></div>
+        <div class="box"><b><code>evaluate.py</code></b><span>per-change scorecard, pilot metrics</span></div>
+        <div class="box"><b><code>record_episode.py</code></b><span>outcomes and lessons into memory</span></div>
+      </div></div>
+    <div class="down">▼ writes <code>context-manifest.yaml</code> + <code>impact-analysis.md</code></div>
+    <div class="layer l-agents"><div class="h">3 · Agents (Claude Code, judgement)</div>
+      <div class="row">
+        <div class="box"><b>context-bootstrap-agent</b><span><code>/setup-context</code>: layout, first build, gaps</span></div>
+        <div class="box"><b>context-builder-agent</b><span><code>/build-context</code>: seeds, impact check, plan</span></div>
+        <div class="box"><b>change-agent</b><span><code>/implement-change</code>: tests first, code, scope check</span></div>
+        <div class="box"><b>Reviewers</b><span>change-judge, code-review, security (guarded)</span></div>
+      </div></div>
+    <div class="down">▼ human gates in between (approval, diff review)</div>
+    <div class="layer l-out"><div class="h">Outputs and feedback loop</div>
+      <div class="row">
+        <div class="box"><b>Change artifacts</b><span>plan, ledger, verification, evaluation</span></div>
+        <div class="box"><b>Code + tests</b><span>inside the blast radius, never committed by the agent</span></div>
+        <div class="box"><b>Episodes</b><span>lessons shown in future manifests</span></div>
+        <div class="box"><b>Refreshed graphs</b><span>the next request starts from current facts</span></div>
+      </div></div>
+  </div>
+
+  <h3>The intelligence layers</h3>
+  <table>
+    <tr><th style="width:16%">Layer</th><th style="width:26%">Built by</th><th>Answers</th><th style="width:24%">Output</th></tr>
+    <tr><td>Code graph</td><td>graphify (tree-sitter parse, local, no LLM) + <code>enrich_graph.py</code></td><td>What calls, uses or inherits what inside a service. Enrichment adds what graphify doesn't store: signature, line range, routes, published events, business rules, covering tests</td><td><code>&lt;svc&gt;/graphify-out/graph.json</code></td></tr>
+    <tr><td>Service graph</td><td><code>service_graph.py</code></td><td>Which services call or subscribe to which. No import links services, so the edges are rebuilt from config, contracts, static client/handler code and runtime traces, recording which evidence confirms each edge</td><td><code>graphs/service-graph.json</code></td></tr>
+    <tr><td>Quality graph</td><td><code>scripts/run_tests.py</code> (each service's own build tool)</td><td>Which tests execute which lines; reads coverage.py, JaCoCo, Cobertura, lcov, Go and Istanbul</td><td><code>var/quality/&lt;svc&gt;-coverage.json</code></td></tr>
+    <tr><td>Semantic index</td><td><code>semantic_index.py</code>, model <code>BAAI/bge-small-en-v1.5</code> on CPU</td><td>Where a request in <i>business</i> words lands in code. Dense (FAISS) and keyword (BM25) search fused by reciprocal rank, over code, rules, APIs, events, docs and service descriptions</td><td><code>graphs/semantic/</code> (local, git-ignored)</td></tr>
+    <tr><td>Knowledge base</td><td><code>knowledge_base.py</code></td><td>Requirement and spec context from documents. Injection-shaped and sensitive passages are excluded; passages inform judgement, never scope</td><td><code>graphs/kb/</code></td></tr>
+  </table>
+
+  <h3>Inside the Context Manifest</h3>
+  <table>
+    <tr><th style="width:34%">Section</th><th>Comes from</th><th style="width:26%">Drives</th></tr>
+    <tr><td><code>services</code>, <code>files</code>, <code>symbols</code>, <code>apis</code></td><td>code graph + service graph</td><td>the blast radius</td></tr>
+    <tr><td><code>dependencies</code> (direct, transitive, cross-service)</td><td>code graph edges, service graph, field references</td><td>impact review, owner sign-off</td></tr>
+    <tr><td><code>events</code>, <code>data</code></td><td>service graph, models, OpenAPI, <code>events.yaml</code></td><td>contract and migration gates</td></tr>
+    <tr><td><code>tests</code></td><td>per-test coverage, static references, QA test cases</td><td>regression set</td></tr>
+    <tr><td><code>knowledge</code>, <code>config</code>, <code>history</code>, <code>runtime_evidence</code>, <code>memory</code></td><td>rules, documents, config, git, traces, episodes</td><td>judgement</td></tr>
+    <tr><td><code>retrieval</code></td><td>every semantic and knowledge-base query and hit, with scores</td><td>reviewing seeds</td></tr>
+    <tr><td><code>unknowns</code>, <code>conflicts</code></td><td>tool + agents (append-only)</td><td>plan status</td></tr>
+    <tr><td><code>confidence</code>, <code>risk</code>, <code>workflow</code></td><td>computed by <code>manifest.py</code></td><td>the gates</td></tr>
+    <tr><td><code>builder_notes</code></td><td>agents only</td><td>seed decisions, escalations</td></tr>
+  </table>
+
+  <h3>Agents and their sub-agents</h3>
+  <table>
+    <tr><th style="width:24%">Command → agent</th><th>Sub-agents</th><th style="width:30%">Writes</th></tr>
+    <tr><td><code>/setup-context</code> → context-bootstrap-agent</td><td>audit-trail-writer, harness-updater</td><td>graphs, indexes, registry (after gate 1), setup audit</td></tr>
+    <tr><td><code>/build-context</code> → context-builder-agent</td><td>task-intake-classifier, context-manifest-builder, impact-analyzer, risk-workflow-selector, decision-ledger-writer</td><td><code>task.md</code>, manifest, impact analysis, plan, ledger. No product code</td></tr>
+    <tr><td><code>/implement-change</code> → change-agent</td><td>change-judge, code-review-agent, security-agent (guarded)</td><td>code + tests in scope, <code>verification.md</code>, episode</td></tr>
+    <tr><td><code>/evaluate-change</code>, <code>/evaluate-pilot</code></td><td>— (<code>evaluate.py</code>)</td><td><code>evaluation.md</code>, pilot evaluation</td></tr>
+  </table>
+
+  <h3>Kit folder and application folder</h3>
+  <div class="split">
+    <div class="card"><h4>Starter kit (source)</h4><ul style="margin:0;padding-left:20px">
+      <li><code>install.py</code>: discovers the layout, copies the kit, never overwrites</li>
+      <li><code>kit/.claude/</code>: commands, agents, rules, skills, templates</li>
+      <li><code>kit/tools/context/</code>, <code>kit/scripts/</code>: the engine</li>
+      <li><code>kit/scaffold/</code>: inputs created only when missing, toolchain lock</li>
+      <li>Kit-folder commands: <code>/setup-context &lt;app&gt;</code>, <code>/install-kit</code>, <code>/toolchain-doctor</code></li></ul></div>
+    <div class="mid">install.py →</div>
+    <div class="card"><h4>Application (target)</h4><ul style="margin:0;padding-left:20px">
+      <li><code>.claude/</code>: the six brownfield commands become active here</li>
+      <li><code>tools/context/</code>, <code>scripts/</code>: run with the app as repo root</li>
+      <li><code>config/services.yaml</code>, <code>.claude/config.yaml</code>: the human-confirmed registry and thresholds</li>
+      <li><code>CLAUDE.md</code> section: tells every session the change path</li>
+      <li><code>graphs/</code>, <code>artifacts/</code>, <code>var/</code>: generated by the tools</li></ul></div>
+  </div>
+
+  <h3>Freshness, safety and portability</h3>
+  <div class="grid g2">
+    <div class="card"><h4>Freshness</h4><p>Inputs are fingerprinted by content (line endings normalised, so Windows
+      and Linux agree). <code>refresh.py --check</code> reports fresh / stale; <code>--stale</code> rebuilds only what
+      changed. One writer at a time (a lock file), stages in dependency order, atomic index replacement. A graph built
+      by another engine version or config counts as stale.</p></div>
+    <div class="card"><h4>Scope enforcement</h4><p>After the last edit the engine re-runs the approved seeds against
+      the changed code (<code>--verify-scope</code>). Growth (a new file, consumer, service or gate) is a scope change
+      that recomputes risk and can void approvals.</p></div>
+    <div class="card"><h4>Languages</h4><p>The tools run on Python. Code is read with Python's <code>ast</code> or
+      tree-sitter: Java, Kotlin, Groovy, C#, TypeScript, JavaScript, Go, PHP, Ruby, Rust, Scala, Swift, C/C++.
+      Framework presets find routes, events, clients and tables (Spring, FastAPI, ASP.NET Core, NestJS, Express, gin,
+      and more); in-house frameworks get a preset in <code>config/conventions.yaml</code>.</p></div>
+    <div class="card"><h4>Runtime footprint</h4><p>CPU only, about 2 GB for the toolchain, no GPU, no service to
+      host. The toolchain is pinned by a lock file and installed by <code>setup_toolchain.py</code>. Graph JSON can be
+      committed so CI checks freshness with <code>refresh.py --check --committed-only</code>.</p></div>
+  </div>
+  <p class="small">Deeper dive: <code>docs/reference/ENGINE.md</code> (engine design) and
+     <code>docs/reference/KNOWLEDGE-BASE.md</code> (documents).</p>
+</section>
+
+<!-- ======================================================================= SEARCH -->
+<section id="search">
+  <h2>How search works: from a request to the code it touches</h2>
+  <p class="lede">When you run <code>/build-context "&lt;request&gt;"</code>, <code>manifest.py</code> has to find
+     where the request lands in the code (the <b>seeds</b>) and then everything that depends on those places. It does
+     this in four steps. Two kinds of search find the seeds; the graph is only walked after the seeds are chosen.</p>
+
+  <div class="flow">
+    <div class="step once"><div class="k">Input</div><div class="t">Request text</div><div class="d">+ expansions from the builder agent</div></div>
+    <div class="arrow">→</div>
+    <div class="step"><div class="k">1 · Name match</div><div class="t">Exact names</div><div class="d">symbols, fields, topics, APIs, rule ids</div></div>
+    <div class="arrow">→</div>
+    <div class="step"><div class="k">2 · Hybrid search</div><div class="t">BM25 + FAISS</div><div class="d">fused by rank</div></div>
+    <div class="arrow">→</div>
+    <div class="step"><div class="k">3 · Seeds</div><div class="t">Pick landing points</div><div class="d">explicit &gt; name match &gt; search</div></div>
+    <div class="arrow">→</div>
+    <div class="step"><div class="k">4 · Graph walk</div><div class="t">Dependents</div><div class="d">1 hop, then up to depth 3</div></div>
+    <div class="arrow">→</div>
+    <div class="step end"><div class="k">Output</div><div class="t">Manifest</div><div class="d">files, APIs, tests, risk</div></div>
+  </div>
+
+  <h3>What is searched</h3>
+  <p>graphify on its own stores only an id, label, file, line and community per node. <code>enrich_graph.py</code>
+     then writes the missing facts onto each class and method node in <code>graph.json</code>: signature, docstring,
+     fields, route, events, business rules, covering tests and an <code>embedding_text</code>. The graphify views
+     (<code>graph.html</code>, <code>GRAPH_REPORT.md</code>) do not show these fields; open <code>graph.json</code>
+     to see them.</p>
+  <p><code>semantic_index.py build</code> turns each enriched node, and a few other sources, into one search document
+     and saves them in <code>graphs/semantic/docs.jsonl</code>:</p>
+  <table>
+    <tr><th style="width:14%">Type</th><th style="width:40%">Source</th><th>Links to code</th><th style="width:16%">Can produce a seed</th></tr>
+    <tr><td><code>code</code></td><td>enriched graphify nodes (test code excluded)</td><td>the node's own symbol</td><td>yes</td></tr>
+    <tr><td><code>rule</code></td><td><code>docs/business-rules.md</code> rows</td><td>the symbols the rule cites</td><td>yes</td></tr>
+    <tr><td><code>api</code></td><td>OpenAPI operations</td><td>the route method</td><td>yes</td></tr>
+    <tr><td><code>topic</code></td><td><code>contracts/events.yaml</code> topics</td><td>publisher and handler symbols</td><td>yes</td></tr>
+    <tr><td><code>doc</code></td><td><code>docs/**/*.md</code>, README sections</td><td>none</td><td>no, knowledge only</td></tr>
+    <tr><td><code>service</code></td><td>descriptions in <code>config/services.yaml</code></td><td>none</td><td>no, service routing</td></tr>
+  </table>
+  <p>The text of a code document is its <code>embedding_text</code>. It is built from the code, so comments count only
+     when they are a docstring or fall inside the first 700 characters of the body:</p>
+<pre><span class="c"># embedding_text of one code node</span>
+&lt;kind&gt; &lt;qualname&gt; in the &lt;service&gt; service (&lt;file&gt;).
+  + first paragraph of the docstring (or the module doc)
+  + HTTP endpoint METHOD /path · published / handled events
+  + Fields: name (type), ...
+  + Business rule BR-xx: &lt;rule text&gt;
+Name: &lt;qualname split into words&gt;. Signature: &lt;signature&gt;
+Code: &lt;first 700 characters of the source&gt;</pre>
+  <div class="callout"><b>Each document is scored on its own text.</b> Search never follows graph edges and never
+     mixes in a neighbour's text. A caller can still match a query because the callee's name appears in the
+     caller's own code excerpt, but that is a text match, not a graph step.</div>
+
+  <h3>Step 1 · Name matching (keyword search on code symbols)</h3>
+  <p><code>resolve_seeds()</code> in <code>manifest.py</code> matches the request's words against the real names in the
+     symbol index (parsed with Python <code>ast</code> or tree-sitter). It does not use BM25 and has no scores: a name
+     either matches or it does not.</p>
+  <ul>
+    <li><b>Identifiers</b> in the request (<code>reorderPoint</code>, <code>OrderService</code>) match symbols, fields and event topics.</li>
+    <li><b>Business rule ids</b> (<code>BR-07</code>) resolve to the symbols the rule cites.</li>
+    <li><b>Phrases</b> of 2–3 words become camelCase or PascalCase names ("order type" → <code>OrderType</code>, "ship date" → <code>shipDate</code>).</li>
+    <li><b>API paths</b> (<code>GET /orders/{id}</code>) resolve to the route method.</li>
+    <li><b>Single words</b> match symbol names, except <i>generic</i> words that would match more than 35% of the
+        service's code. Those are ignored and listed in the manifest.</li>
+  </ul>
+
+  <h3>Step 2 · Hybrid search (BM25 + semantic, fused)</h3>
+  <p><code>search()</code> in <code>semantic_index.py</code> scores <b>every</b> document for each query (the request
+     plus any expansions the builder agent adds in code or domain terms) in two ways:</p>
+  <div class="grid g2">
+    <div class="card"><h4>Dense (FAISS)</h4><p>The query is embedded with <code>BAAI/bge-small-en-v1.5</code> and
+      compared by cosine similarity with every document vector. It finds <b>meaning</b>: "stop overselling" can match
+      a stock reservation method that never uses those words.</p></div>
+    <div class="card"><h4>Keyword (BM25)</h4><p>Token overlap, weighted so rare words count more. camelCase and
+      snake_case are split first (<code>reorderPoint</code> → <code>reorder point</code>). It finds <b>exact
+      names and domain terms</b> that an embedding can blur.</p></div>
+  </div>
+  <p>The two rankings are merged with <b>Reciprocal Rank Fusion (RRF)</b>. There is one fused list, not two
+     separate result sets:</p>
+<pre>fused(doc) = Σ over queries [ 1 / (60 + dense_rank) + 1 / (60 + bm25_rank) ]
+<span class="c"># a document with no keyword overlap gets no BM25 term</span></pre>
+  <ul>
+    <li>RRF uses <b>ranks, not raw scores</b>. Cosine (0 to 1) and BM25 (unbounded) cannot be compared directly.</li>
+    <li>The constant 60 flattens the curve: appearing high in <b>both</b> lists beats being first in only one.</li>
+    <li>Each expansion adds two more rankings to the sum, so a document found by several phrasings rises.</li>
+  </ul>
+  <p>For seeds, <code>seed_search()</code> then filters the top 10 fused hits:</p>
+  <ol>
+    <li><b>Type:</b> only <code>code</code>, <code>rule</code>, <code>api</code> and <code>topic</code> hits are kept.</li>
+    <li><b>Quality floor:</b> a hit whose dense score is below <code>min_dense_score</code> (0.55) is dropped, so a
+        keyword match alone cannot carry a weak hit.</li>
+    <li><b>Links:</b> each remaining hit's links to code symbols become <b>semantic candidates</b>.</li>
+  </ol>
+  <p class="small">Documents under <code>knowledge/</code> (PDF, Excel, CSV) are searched the same way by
+     <code>knowledge_base.py</code> (top 8 passages above the same floor). Those passages inform the agents'
+     judgement only. They never add files to scope or change scores.</p>
+
+  <h3>Step 3 · Choosing the seeds</h3>
+  <p>Name-matching results and search candidates are <b>not</b> merged by score. They are combined by priority,
+     because an exact name in the code is stronger evidence than similarity:</p>
+  <table>
+    <tr><th style="width:30%">Situation</th><th>Seeds come from</th><th style="width:16%"><code>seeds.source</code></th></tr>
+    <tr><td>You passed <code>--seed X</code></td><td>Your seeds. Search still runs as a cross-check and is recorded</td><td><code>explicit</code></td></tr>
+    <tr><td>Name matching found something</td><td>The name matches. Search candidates are recorded under <code>seeds.semantic_candidates</code> for the builder agent to compare</td><td><code>lexical</code></td></tr>
+    <tr><td>Name matching found nothing</td><td>At most 4 search candidates from the primary service, each within 0.10 of the best score. Confidence in intent is capped at 0.7 and fast-track is not allowed</td><td><code>semantic</code></td></tr>
+  </table>
+  <p>In every case the context-builder-agent reads the code, confirms or corrects the seeds, and re-runs with
+     <code>--seed</code> when they are wrong.</p>
+
+  <h3>Step 4 · Walking the graph from the seeds</h3>
+  <p>The graph is used only now. The walk follows <b>incoming</b> edges, meaning things that depend on a seed. What
+     a seed itself calls is context, not impact.</p>
+  <table>
+    <tr><th style="width:18%">Set</th><th>What goes in</th><th style="width:26%">Code</th></tr>
+    <tr><td>Direct</td><td>The seeds; symbols that read a seed field or identifier; symbols with a graphify
+        <code>calls</code>, <code>uses</code>, <code>references</code> or <code>inherits</code> edge <b>into</b> a seed (1 hop)</td>
+        <td><code>graphify_neighbors()</code> in <code>manifest.py</code></td></tr>
+    <tr><td>Transitive</td><td>Breadth-first reverse references from the direct set, up to
+        <code>transitive_depth</code> (default 3). Each symbol records its depth and what it references</td>
+        <td><code>SymbolIndex.dependents()</code> in <code>common.py</code></td></tr>
+    <tr><td>Cross-service</td><td>Other services that call or subscribe to the affected code, from the service graph,
+        plus symbols in other services that use the seed identifiers</td><td><code>analyse()</code> in <code>manifest.py</code></td></tr>
+  </table>
+  <p>From the affected symbols the engine derives the API endpoints and event handlers reached, the files in the
+     blast radius, the tests to run, the business rules involved, and finally confidence, risk and the workflow.</p>
+
+  <h3>The whole flow</h3>
+<pre>request + expansions
+   │
+   ├─▶ 1 name matching on code symbols ────────────────▶ lexical seeds ─────┐
+   │                                                                          │  priority:
+   └─▶ 2 for each query, over every document:                                ├─ explicit &gt; lexical &gt; semantic
+          FAISS ranking ─┐                                                    │
+          BM25 ranking  ─┴─ RRF ─▶ top 10 ─▶ type + 0.55 floor ─▶ candidates ┘
+                                                                              │
+                                                                         3 SEEDS
+                                                                              │
+   4 direct (seeds + field readers + 1-hop incoming edges)                    │
+     ─▶ transitive (reverse references, depth ≤ 3) ─▶ cross-service ◀─────────┘
+     ─▶ APIs, events, files, tests, rules ─▶ confidence, risk, workflow ─▶ context-manifest.yaml</pre>
+
+  <h3>Seeing it for yourself</h3>
+<pre><span class="c"># raw hits with dense, BM25 and fused scores</span>
+python tools/context/semantic_index.py search "&lt;request&gt;" -k 10
+<span class="c"># the code symbols those hits resolve to (the seed candidates)</span>
+python tools/context/semantic_index.py search "&lt;request&gt;" --seeds</pre>
+  <p>In a manifest, <code>retrieval.semantic_index</code> lists every query, every hit with its scores and what
+     happened to it (candidate, dropped below the floor, no linked code). <code>seeds.symbols</code> shows why each
+     seed matched, and each entry in <code>dependencies</code> carries its <code>why</code>.</p>
+</section>
+
+<!-- ======================================================================= CONCEPTS -->
+<section id="concepts">
+  <h2>Key concepts</h2>
+  <p class="lede">The vocabulary you will see in every plan and report.</p>
+  <div class="grid g3">
+    <div class="card"><h4>Context Manifest</h4><p>A YAML file built by a tool (never by hand) for each request: seeds,
+      files, symbols, APIs, events, consumers, tests, business rules, documents, confidence, risk, workflow.
+      <code>artifacts/changes/&lt;id&gt;/context-manifest.yaml</code>.</p></div>
+    <div class="card"><h4>Seeds</h4><p>Where the request lands in the code (e.g. <code>orders:domain.cancel_order</code>).
+      Found by name matching and semantic search, then <b>confirmed</b> by the builder agent reading the code.</p></div>
+    <div class="card"><h4>Blast radius</h4><p>The files the change may edit: the manifest's <code>files</code>, the
+      supporting files the plan names (contracts, business rules) and their tests. Anything else needs a scope change.</p></div>
+    <div class="card"><h4>Confidence</h4><p>Six components (intent, graph freshness, test evidence, dependency clarity,
+      knowledge grounding, unknowns) and a weighted overall. A heuristic, <b>not a probability</b>. Read the components.</p></div>
+    <div class="card"><h4>Critical gaps</h4><p>Intent &lt; 0.5, test evidence &lt; 0.4 or dependency clarity &lt; 0.5.
+      Any gap caps overall confidence at 0.60 and must be addressed or explicitly accepted in the plan.</p></div>
+    <div class="card"><h4>Risk</h4><p>An additive score from what is touched: public contracts, dependent services,
+      events with subscribers, business rules, persistence, security code. Bands: low ≤ 2, medium ≤ 6, high ≤ 10, critical above.</p></div>
+    <div class="card"><h4>Mandatory gates</h4><p>Floors that no score can buy past: contract change, destructive data
+      change, security-sensitive code, missing owner, invalid contract. See <a href="#gates">gates</a>.</p></div>
+    <div class="card"><h4>Unknowns</h4><p><b>blocking</b> means no code (clarify). <b>major</b> must be answered or
+      deferred with a named owner in the plan. Agents can add unknowns, never remove them.</p></div>
+    <div class="card"><h4>Enabled services</h4><p>The list in <code>brownfield.enabled_services</code> of services the
+      agent may change. Empty after setup; a human adds the pilot service. Everything else is analyze-only.</p></div>
+    <div class="card"><h4>Scope change (amend)</h4><p>When the change needs more than the manifest predicted, the agent
+      stops and amends the manifest. Risk and workflow are recomputed; a stricter result <b>voids prior approvals</b>.</p></div>
+    <div class="card"><h4>Episode &amp; lessons</h4><p>Each change is recorded in <code>artifacts/memory/episodes.jsonl</code>
+      with its outcome and lessons. Future manifests that touch the same files show those lessons.</p></div>
+    <div class="card"><h4>Scope recall / precision</h4><p><b>Recall</b>: share of really-changed files the manifest
+      predicted (a miss is the costly error). <b>Precision</b>: share of predicted files that changed (low costs review time only).</p></div>
+  </div>
+</section>
+
+<!-- ======================================================================= GATES -->
+<section id="gates">
+  <h2>Workflows &amp; gates</h2>
+  <p class="lede">The workflow is <b>selected by the evidence, not chosen by a person</b>. Agents may only make it
+     stricter. The effective workflow is the stricter of the generated one and any escalation.</p>
+
+  <table>
+    <tr><th style="width:17%">Workflow</th><th style="width:33%">Selected when</th><th>Before code</th><th>After code</th></tr>
+    <tr><td><span class="tag t-green">fast-track</span></td><td>confidence ≥ 0.80, risk low, no mandatory gate, no critical gap</td><td>none</td><td>human reviews the diff</td></tr>
+    <tr><td><span class="tag t-blue">plan-approve-execute</span></td><td>anything else up to medium risk</td><td>service owner writes <code>Approval: Approved by &lt;name&gt; &lt;date&gt;</code> in <code>change-plan.md</code></td><td>human reviews the diff</td></tr>
+    <tr><td><span class="tag t-red">guarded</span></td><td>risk high / critical, or a guarded gate</td><td>plan approved <b>+ owner sign-off of every impacted service</b></td><td>security review + human diff review</td></tr>
+    <tr><td><span class="tag t-amber">clarify</span></td><td>confidence &lt; 0.60, or a blocking unknown</td><td>no code: answer the questions, rebuild the manifest</td><td>—</td></tr>
+    <tr><td><span class="tag t-grey">analyze-only</span></td><td>a must-change service isn't enabled, or analysis was requested</td><td>no code: split the task or enable the service</td><td>—</td></tr>
+  </table>
+
+  <h3>How the workflow is picked, in order</h3>
+  <div class="tree">
+    <div class="q"><div class="num">1</div><div>Must a service change that is not in <code>enabled_services</code>, or was only analysis asked for?</div><div class="res"><span class="tag t-grey">analyze-only</span></div></div>
+    <div class="q"><div class="num">2</div><div>Is confidence below 0.60, or is there a <b>blocking</b> unknown?</div><div class="res"><span class="tag t-amber">clarify</span></div></div>
+    <div class="q"><div class="num">3</div><div>Is risk high or critical, or is there a guarded gate (data, security, missing owner, invalid contract)?</div><div class="res"><span class="tag t-red">guarded</span></div></div>
+    <div class="q"><div class="num">4</div><div>Is confidence ≥ 0.80, risk low, with no mandatory gate and no critical gap?</div><div class="res"><span class="tag t-green">fast-track</span></div></div>
+    <div class="q"><div class="num">5</div><div>Otherwise</div><div class="res"><span class="tag t-blue">plan-approve-execute</span></div></div>
+  </div>
+  <p class="small">Pending assumptions (<code>ASSUMPTION-&lt;id&gt;</code>) also mean the plan is "Pending Approval", so
+     the workflow is at least plan-approve-execute.</p>
+
+  <h3>Mandatory gates: floors no score can buy past</h3>
+  <table>
+    <tr><th>Gate</th><th>Triggered when</th><th>Minimum workflow</th></tr>
+    <tr><td><code>public_contract_change</code></td><td>an OpenAPI request/response schema or an event payload is touched</td><td><span class="tag t-blue">plan-approve-execute</span></td></tr>
+    <tr><td><code>destructive_data_change</code></td><td>the persistence model is touched and there is no migration tooling</td><td><span class="tag t-red">guarded</span></td></tr>
+    <tr><td><code>security_sensitive</code></td><td>auth / permission / secret / token / credential / encryption code on the changed path</td><td><span class="tag t-red">guarded</span></td></tr>
+    <tr><td><code>missing_owner</code></td><td>a must-change or impacted service has no owner in <code>config/services.yaml</code></td><td><span class="tag t-red">guarded</span></td></tr>
+    <tr><td><code>invalid_contract</code></td><td>the change touches events and <code>contracts/events.yaml</code> does not parse</td><td><span class="tag t-red">guarded</span> + blocking unknown</td></tr>
+  </table>
+  <div class="callout"><b>Rule of thumb:</b> a contract, event payload, persistence or business-rule change is never fast-track.</div>
+</section>
+
+<!-- ======================================================================= GUARDRAILS -->
+<section id="guardrails">
+  <h2>Ground rules (rule 40, in plain words)</h2>
+  <div class="grid g2">
+    <div class="card"><h4>No manifest, no change</h4><p>The change agent refuses to edit product code without a
+      tool-built manifest and a plan marked <code>Ready</code>, with the approval the workflow needs.</p></div>
+    <div class="card"><h4>Evidence only gets stricter</h4><p>Agents may add unknowns, raise risk and lower confidence,
+      never the reverse. Only a human can relax evidence, with a dated decision.</p></div>
+    <div class="card"><h4>Stay inside the blast radius</h4><p>Need more files, a migration or another service? Stop and
+      amend the manifest. Never widen silently.</p></div>
+    <div class="card"><h4>Regression is mandatory</h4><p>Every required check runs, including test suites of impacted
+      consumer services. Failures get at most 3 repair rounds, then go to a human.</p></div>
+    <div class="card"><h4>Close the loop</h4><p>Every change ends with a decision ledger, an episode, refreshed graphs
+      and a clean freshness check.</p></div>
+    <div class="card"><h4>Untrusted text is data</h4><p>Ticket and email text is scanned. Personal data stops the
+      change until redacted. Embedded instructions are never followed.</p></div>
+    <div class="card"><h4>"Not found" ≠ "proven absent"</h4><p>Consumers outside this repo are "not ruled out" unless a
+      service catalogue is configured. Owners confirm before a breaking change.</p></div>
+    <div class="card"><h4>No invented business rules</h4><p>Rules, owners, descriptions and tests come from humans or
+      the code. Missing ones are listed as gaps or questions.</p></div>
+    <div class="card"><h4>Multi-service = change set</h4><p>Providers ship backward-compatible changes before
+      consumers; the agent works one service at a time in rollout order.</p></div>
+    <div class="card"><h4>Semantic search always runs</h4><p>If the search stack is missing, no manifest is written
+      (exit 5). Never switch it off to "get going".</p></div>
+  </div>
+</section>
+
+<!-- ======================================================================= SETUP -->
+<section id="setup">
+  <h2>Phase 1 · Setup (once per repository)</h2>
+  <p class="lede">Owner: tech lead. About half a day including the human decisions. Two ways to run it: from the
+     <b>starter kit folder</b> (one command does install + toolchain + setup) or step by step from the application.</p>
+
+  <h3>Day 0 · Decide before installing</h3>
+  <div class="grid g2">
+    <div class="card"><h4>Pick the pilot service</h4><p>One service with decent tests, an owner who will review, and
+      changes coming up.</p></div>
+    <div class="card"><h4>Name owners and descriptions</h4><p>An owner per service (or knowingly <code>TBD</code>, which
+      forces guarded). One business-language description per service, <b>written by a human</b>: it feeds the semantic search.</p></div>
+  </div>
+
+  <h3>Option A · From the starter kit folder (recommended)</h3>
+  <p>Open the <code>brownfield-starter-kit</code> folder itself in Claude Code and run:</p>
+  <pre>/setup-context C:\path\to\application          <span class="c"># install (dry run → your OK → apply), toolchain, then setup</span>
+/install-kit   C:\path\to\application          <span class="c"># install + toolchain only</span>
+/toolchain-doctor C:\path\to\application       <span class="c"># diagnose package / model problems</span></pre>
+  <p class="small">After setup, open the <b>application folder</b> in Claude Code for every later command. The change
+     commands, agents and rules load only from there.</p>
+
+  <h3>Option B · Step by step</h3>
+  <table>
+    <tr><th style="width:5%">#</th><th style="width:28%">Step</th><th>Command / action</th><th style="width:14%">Who</th></tr>
+    <tr><td>1</td><td>Install the kit (dry run, then apply)</td><td><code>python brownfield-starter-kit/install.py &lt;app&gt;</code> then <code>--apply</code></td><td>Tech lead</td></tr>
+    <tr><td>2</td><td>Toolchain: locked packages + model</td><td><code>python scripts/setup_toolchain.py</code> (in the app; Windows: <code>py -3.12 …</code>)</td><td>Tech lead</td></tr>
+    <tr><td>3</td><td>Build intelligence</td><td>open the app in Claude Code, run <code>/setup-context</code></td><td>Tech lead</td></tr>
+    <tr><td>3a</td><td><b>Gate 1</b>: confirm the registry</td><td>services, source folders, test commands, QA test cases, owners, descriptions</td><td>Tech lead + owners</td></tr>
+    <tr><td>3b</td><td>First build</td><td>service graph → tests &amp; coverage → code graphs → semantic index → knowledge base → snapshot</td><td>automated</td></tr>
+    <tr><td>4</td><td>Fill the gaps it reports</td><td>OpenAPI contract, business rules, failing tests, owners, valid <code>events.yaml</code></td><td>Tech lead + team</td></tr>
+    <tr><td>5</td><td>Enable the pilot service</td><td>edit <code>.claude/config.yaml</code>: <code>enabled_services: [&lt;pilot&gt;]</code></td><td>Tech lead (human edit)</td></tr>
+    <tr><td>6</td><td>First small change, together</td><td><code>/build-context "&lt;small, low-risk change&gt;"</code></td><td>Whole team</td></tr>
+  </table>
+
+  <h3>Gaps and what they cost</h3>
+  <table>
+    <tr><th>Gap</th><th>Effect if left</th><th>Fix</th></tr>
+    <tr><td>owner <code>TBD</code></td><td>every change to that service is guarded</td><td>name an owner</td></tr>
+    <tr><td>empty <code>docs/business-rules.md</code></td><td>no rule links; rule-touching changes look riskier</td><td>add rules a human confirms</td></tr>
+    <tr><td>failing / missing tests</td><td>low test evidence, no fast-track</td><td>fix the tests through the change flow</td></tr>
+    <tr><td>no OpenAPI contract</td><td>APIs come from code routes only</td><td>export it from the framework</td></tr>
+    <tr><td>unparsable <code>contracts/events.yaml</code></td><td>every event-touching change is clarify</td><td>make it strict YAML (gated change)</td></tr>
+    <tr><td>no documents in <code>knowledge/</code></td><td>no spec context in manifests</td><td>add specs without personal data</td></tr>
+  </table>
+  <div class="callout"><b>Setup is done when:</b> <code>refresh.py --check</code> exits 0, a smoke manifest has
+     <code>semantic_search.ran: true</code>, owners and descriptions are human-written, the pilot service is enabled,
+     and the setup audit exists.</div>
+</section>
+
+<!-- ======================================================================= CHANGE -->
+<section id="change">
+  <h2>Phase 2 · One change request, end to end</h2>
+  <p class="lede">Every requirement, bug fix, feature or refactor on existing code follows this flow. That includes
+     "small" ones: fast-track is the cheap path for those.</p>
+
+  <h3>Step 1 · <code>/build-context "&lt;request&gt;"</code>: the evidence</h3>
+  <pre>/build-context "Customers can cancel an order until it ships"
+/build-context "JIRA-123: invoice tax is rounded wrong" id=JIRA-123
+/build-context "What would renaming Order.status touch?" mode=analyze   <span class="c"># estimate only, never code</span></pre>
+  <table>
+    <tr><th>#</th><th>What happens</th><th>Result</th></tr>
+    <tr><td>1</td><td>Intake: safety scan, type, id</td><td><code>task.md</code></td></tr>
+    <tr><td>2</td><td>Freshness check on every service (stale graphs refreshed first)</td><td>current graphs</td></tr>
+    <tr><td>3</td><td>Discovery: name matching + semantic search + graph expansion</td><td>first manifest</td></tr>
+    <tr><td>4</td><td>Seed refinement: the agent reads the code and confirms landing points (max 3 runs)</td><td>refined manifest</td></tr>
+    <tr><td>5</td><td>Impact: direct, transitive, runtime, data, regression, consumer effect</td><td><code>impact-analysis.md</code></td></tr>
+    <tr><td>6</td><td>Risk and workflow confirmed or <b>escalated</b> (never relaxed)</td><td>builder notes</td></tr>
+    <tr><td>7</td><td>Plan + decision ledger</td><td><code>change-plan.md</code> (Ready / Clarify), <code>decision-ledger.md</code></td></tr>
+  </table>
+  <p><b>Read in this order:</b> <code>impact-analysis.md</code>, then <code>change-plan.md</code>, then the manifest's
+     confidence components, unknowns, impacted services and mandatory gates.</p>
+
+  <h3>Step 2 · The gate</h3>
+  <p>Chosen by the workflow (<a href="#gates">table above</a>), not by the engineer. For plan-approve-execute and
+     guarded, the service owner writes the approval line in <code>change-plan.md</code>.</p>
+
+  <h3>Step 3 · <code>/implement-change &lt;id&gt;</code>: the build</h3>
+  <div class="grid g2">
+    <div class="card"><h4>The agent refuses if…</h4><ul style="margin:0;padding-left:20px">
+      <li>there is no manifest, or the plan isn't <code>Ready</code></li><li>the approval is missing</li>
+      <li>the service isn't enabled</li><li>the graphs are stale</li></ul></div>
+    <div class="card"><h4>Then, in order</h4><ol style="margin:0;padding-left:20px">
+      <li><b>Tests first</b>: failing tests per acceptance criterion</li><li>Implement inside the blast radius</li>
+      <li>Refresh graphs + <b>scope check</b> (grew → amend + maybe re-approve)</li><li>All required checks → <code>verification.md</code></li>
+      <li>Judge + code review (+ security if guarded), max 3 repairs</li><li>Episode with lessons; final freshness check</li></ol></div>
+  </div>
+  <div class="callout"><b>Then you review the diff.</b> The agent never commits or pushes.</div>
+
+  <h3>Step 4 · <code>/evaluate-change &lt;id&gt;</code>: the scorecard</h3>
+  <p>Takes seconds. Run it for every change, including those that ended in clarify.</p>
+  <table>
+    <tr><th>Check</th><th>If it fails</th></tr>
+    <tr><td>task, manifest, impact analysis, plan, ledger all exist</td><td><span class="tag t-red">FAIL</span></td></tr>
+    <tr><td>semantic search ran for the manifest</td><td><span class="tag t-red">FAIL</span></td></tr>
+    <tr><td>fast-track despite a critical gap</td><td><span class="tag t-red">FAIL</span></td></tr>
+    <tr><td>files changed outside the predicted scope</td><td><span class="tag t-red">FAIL</span> on fast-track ("fast-track incident"), <span class="tag t-amber">WARN</span> otherwise</td></tr>
+    <tr><td><code>verification.md</code> exists for executed changes</td><td><span class="tag t-red">FAIL</span> if outcome success, else <span class="tag t-amber">WARN</span></td></tr>
+    <tr><td>episode recorded · audit names the task · repair iterations</td><td><span class="tag t-amber">WARN</span></td></tr>
+  </table>
+  <p>Verdict: any FAIL → <b>FAIL</b>; any WARN → <b>ATTENTION</b>; else <b>PASS</b>. Every finding gets a cause, owner
+     and fix. Numbers are never edited and missing evidence is never back-filled.</p>
+</section>
+
+<!-- ======================================================================= PILOT -->
+<section id="pilot">
+  <h2>Phase 3 · Pilot &amp; evaluation</h2>
+  <p class="lede">After at least 5 recorded changes, <code>/evaluate-pilot</code> compares the aggregate numbers with
+     the exit gates and recommends a decision.</p>
+
+  <h3>Suggested 3-week pilot</h3>
+  <table>
+    <tr><th style="width:10%">Week</th><th>Do</th><th>Evaluate</th></tr>
+    <tr><td>0</td><td>Setup; close the pilot service's gaps</td><td>setup checks</td></tr>
+    <tr><td>1</td><td>2–3 small changes (expect fast-track)</td><td><code>/evaluate-change</code> each</td></tr>
+    <tr><td>2</td><td>2–3 medium changes, one touching a contract or another service</td><td><code>/evaluate-change</code> each</td></tr>
+    <tr><td>3</td><td>At least one clarify and one guarded change, to exercise every gate</td><td><code>/evaluate-pilot</code> → decision</td></tr>
+  </table>
+
+  <h3>Exit gates (defaults in <code>brownfield.evaluation</code>)</h3>
+  <table>
+    <tr><th>Gate</th><th>Default</th><th>Failing means</th><th>Severity</th></tr>
+    <tr><td>recorded episodes</td><td>≥ 5</td><td>too little evidence to decide</td><td><span class="tag t-amber">WARN</span></td></tr>
+    <tr><td>fast-track incidents</td><td>0</td><td>the cheapest path let an unanalysed change through</td><td><span class="tag t-red">FAIL</span></td></tr>
+    <tr><td>mean scope recall</td><td>≥ 0.90</td><td>manifests miss files that must change</td><td><span class="tag t-red">FAIL</span></td></tr>
+    <tr><td>mean scope precision</td><td>≥ 0.50</td><td>manifests over-scope (costs review time)</td><td><span class="tag t-amber">WARN</span></td></tr>
+    <tr><td>success rate of executed changes</td><td>≥ 0.80</td><td>changes fail even with context</td><td><span class="tag t-red">FAIL</span></td></tr>
+    <tr><td>change scorecards with FAIL</td><td>0</td><td>an evidence trail is broken</td><td><span class="tag t-red">FAIL</span></td></tr>
+  </table>
+
+  <h3>The decision</h3>
+  <div class="grid g3">
+    <div class="card" style="border-top:4px solid var(--green)"><h4>PASS → GO</h4><p>A human adds the next services
+      to <code>enabled_services</code>.</p></div>
+    <div class="card" style="border-top:4px solid #d39a1c"><h4>ATTENTION → EXTEND</h4><p>Run more changes; the report
+      names the gate that is short.</p></div>
+    <div class="card" style="border-top:4px solid var(--red)"><h4>FAIL → STOP</h4><p>Fix the causes (seeds, business
+      rules, tests, contracts, thresholds), then re-evaluate.</p></div>
+  </div>
+  <div class="callout"><b>Confidence calibration.</b> The report shows outcomes per confidence band (≥ 0.80, 0.60–0.79,
+     &lt; 0.60). If the top band doesn't clearly succeed more often, the thresholds tell you nothing for this repo.
+     Re-tune them as a dated human decision.</div>
+</section>
+
+<!-- ======================================================================= ARTIFACTS -->
+<section id="artifacts">
+  <h2>Where things live</h2>
+  <h3>Per change: <code>artifacts/changes/&lt;id&gt;/</code></h3>
+  <table>
+    <tr><th style="width:28%">File</th><th>What it is</th><th style="width:22%">Read by</th></tr>
+    <tr><td><code>task.md</code></td><td>the request, type and acceptance criteria</td><td>everyone</td></tr>
+    <tr><td><code>context-manifest.yaml</code></td><td>the evidence (tool-built, never edited by hand)</td><td>engineer, tech lead</td></tr>
+    <tr><td><code>impact-analysis.md</code></td><td>human-readable impact: direct, cross-service, runtime, data, regression, risk, confidence</td><td>owners, QA, requester</td></tr>
+    <tr><td><code>change-plan.md</code></td><td>the plan, status (Ready / Clarify / Pending Approval), questions, approval line</td><td>owners, requester</td></tr>
+    <tr><td><code>decision-ledger.md</code></td><td>every decision with its reason</td><td>tech lead, audit</td></tr>
+    <tr><td><code>verification.md</code></td><td>every required check and its result</td><td>QA, owners</td></tr>
+    <tr><td><code>evaluation.md</code></td><td>the scorecard</td><td>tech lead, sponsor</td></tr>
+  </table>
+  <h3>Repository-wide</h3>
+  <table>
+    <tr><th style="width:36%">Path</th><th>What it is</th></tr>
+    <tr><td><code>config/services.yaml</code></td><td>service registry: path, owner, description, test command, coverage</td></tr>
+    <tr><td><code>.claude/config.yaml</code> → <code>brownfield:</code></td><td>enabled services, thresholds, layout, exit gates</td></tr>
+    <tr><td><code>docs/business-rules.md</code></td><td>human-confirmed rules (<code>BR-nnn</code>)</td></tr>
+    <tr><td><code>contracts/openapi/</code>, <code>contracts/events.yaml</code></td><td>API and event contracts</td></tr>
+    <tr><td><code>knowledge/</code></td><td>specs and documents (no personal data) for context</td></tr>
+    <tr><td><code>graphs/</code>, <code>**/graphify-out/</code>, <code>var/</code></td><td>generated graphs, indexes, coverage (tools only)</td></tr>
+    <tr><td><code>artifacts/memory/episodes.jsonl</code></td><td>outcomes and lessons of past changes</td></tr>
+    <tr><td><code>artifacts/audit/</code>, <code>artifacts/evaluation/</code></td><td>setup audit, pilot evaluation</td></tr>
+    <tr><td><code>docs/harness/decisions.md</code></td><td>dated human decisions (thresholds, overrides)</td></tr>
+  </table>
+</section>
+
+<!-- ======================================================================= COMMANDS -->
+<section id="commands">
+  <h2>Command cheat sheet</h2>
+  <div class="grid g2">
+    <div class="card"><h4>In the starter kit folder</h4>
+      <table style="margin:0">
+        <tr><td><code>/setup-context &lt;app&gt;</code></td><td>install + toolchain + setup</td></tr>
+        <tr><td><code>/install-kit &lt;app&gt;</code></td><td>install / upgrade + toolchain</td></tr>
+        <tr><td><code>/toolchain-doctor &lt;app&gt;</code></td><td>diagnose / repair packages and model</td></tr>
+      </table></div>
+    <div class="card"><h4>In the application folder</h4>
+      <table style="margin:0">
+        <tr><td><code>/setup-context</code></td><td>once per repo</td></tr>
+        <tr><td><code>/build-context "&lt;request&gt;"</code></td><td>every request</td></tr>
+        <tr><td><code>/implement-change &lt;id&gt;</code></td><td>after the gate</td></tr>
+        <tr><td><code>/refresh-context</code></td><td>after pulls, branch switches, edits</td></tr>
+        <tr><td><code>/evaluate-change &lt;id&gt;</code></td><td>after each change</td></tr>
+        <tr><td><code>/evaluate-pilot</code></td><td>end of pilot</td></tr>
+      </table></div>
+  </div>
+  <details><summary>Command-line equivalents (debugging, CI)</summary>
+<pre>python scripts/setup_toolchain.py --check                          <span class="c"># toolchain ready? installs nothing</span>
+python tools/context/refresh.py --check                            <span class="c"># 0 fresh · 2 stale · 3 locked · 1 failed</span>
+python tools/context/refresh.py --stale [--tests]                  <span class="c"># rebuild what changed</span>
+python tools/context/semantic_index.py search "cancel an order" -k 5
+python tools/context/manifest.py --verify-scope CR-1               <span class="c"># 0 within scope · 4 grew → amend</span>
+python tools/context/manifest.py --amend CR-1 --add-seed billing:invoice.void --reason "invoice must be voided"
+python tools/context/record_episode.py CR-1 --outcome success --lessons "..."
+python tools/context/evaluate.py change CR-1                       <span class="c"># 0 PASS · 1 ATTENTION · 2 FAIL</span></pre>
+    <p class="small">The tools give you the evidence; the agents add the governance (seed judgement, plans, tests first, review).</p>
+  </details>
+</section>
+
+<!-- ======================================================================= TOOLCHAIN -->
+<section id="toolchain">
+  <h2>Toolchain problems</h2>
+  <p class="lede">Install only with <code>python scripts/setup_toolchain.py</code>. It applies a lock of every package
+     version tested together, so <code>transformers</code>, <code>huggingface_hub</code> or <code>numpy</code> can't
+     drift. It installs CPU-only torch and fetches the embedding model once.</p>
+  <table>
+    <tr><th style="width:34%">Symptom</th><th>Fix</th></tr>
+    <tr><td><code>No matching distribution</code> for torch / faiss-cpu</td><td>use Python 3.12: delete <code>.venv-context</code>, run <code>py -3.12 scripts/setup_toolchain.py</code></td></tr>
+    <tr><td>Import or attribute errors inside transformers / huggingface_hub / numpy</td><td>rerun <code>setup_toolchain.py</code> (reinstalls from the lock); <code>--check</code> lists the drift</td></tr>
+    <tr><td><code>CERTIFICATE_VERIFY_FAILED</code></td><td>corporate proxy: the script uses the OS certificate store; make sure the company root CA is installed. Never disable verification</td></tr>
+    <tr><td>huggingface.co unreachable</td><td>set <code>HTTPS_PROXY</code> or <code>HF_ENDPOINT</code>, or share the model: <code>--export-model bge.zip</code> on a working machine, <code>--model-cache bge.zip</code> on yours</td></tr>
+    <tr><td><code>download.pytorch.org</code> blocked</td><td>set <code>PIP_INDEX_URL</code> to the internal mirror and add <code>--torch-index default</code></td></tr>
+    <tr><td>Works in your shell, fails in Claude Code</td><td>activate <code>.venv-context</code> before starting Claude Code; every tool must use that python</td></tr>
+    <tr><td>Manifest exit 5 (semantic search unavailable)</td><td><code>setup_toolchain.py --check</code>, then <code>refresh.py --stale</code>. Never switch semantic search off</td></tr>
+    <tr><td>Windows: path too long during graph build</td><td>keep the repo path short (e.g. <code>C:\src\&lt;repo&gt;</code>) or enable long paths</td></tr>
+  </table>
+  <p class="small">Full list: <code>docs/TROUBLESHOOTING.md</code>. From the kit folder, <code>/toolchain-doctor &lt;app&gt;</code> explains any failure in plain words.</p>
+</section>
+
+<!-- ======================================================================= FAQ -->
+<section id="faq">
+  <h2>Limitations &amp; FAQ</h2>
+  <details open><summary>Why does our application's CLAUDE.md contain a "Brownfield change path" section?</summary>
+    <p>Claude Code reads <code>CLAUDE.md</code> at the start of every session. The kit's rules (<code>.mdc</code>) and
+       hooks are in Cursor's format and only load when a command points an agent at them. The section is what tells
+       <i>every</i> session, including a plain chat, that existing code changes only through
+       <code>/build-context</code> → <code>/implement-change</code>. The commands themselves live in
+       <code>.claude/commands/</code>. Keep the section; <code>install.py --apply --upgrade</code> refreshes it.</p></details>
+  <details><summary>Why can't I see /build-context when I open the starter kit folder?</summary>
+    <p>The kit folder only offers kit-level commands (<code>/setup-context &lt;app&gt;</code>, <code>/install-kit</code>,
+       <code>/toolchain-doctor</code>). Change commands are installed into the application and appear when you open
+       <i>that</i> folder in Claude Code.</p></details>
+  <details><summary>Is the confidence score a probability that the change is correct?</summary>
+    <p>No. It's a weighted heuristic calibrated on a single pilot application. Decide on the components and the
+       critical gaps, and use the pilot's calibration table to re-tune thresholds for your repo.</p></details>
+  <details><summary>Can the assistant change a service that isn't enabled?</summary>
+    <p>No. Such changes get <b>analyze-only</b>. Split the task per service, or have the tech lead enable the
+       service.</p></details>
+  <details><summary>What if a change turns out bigger than the manifest said?</summary>
+    <p>The scope check after the last edit catches it (exit 4). The agent files a scope change; risk and workflow are
+       recomputed, and a stricter result voids earlier approvals.</p></details>
+  <details><summary>Does anything leave our machines?</summary>
+    <p>The embedding model downloads once (or comes from a teammate's export); after that, search runs locally on
+       CPU. Optional community labelling of graphs sends summaries off-machine and needs explicit consent.</p></details>
+  <details><summary>Known limitations</summary>
+    <ul>
+      <li>Impact is name-based, not type-resolved: unrelated symbols sharing a name can appear (the engine favours recall).</li>
+      <li>Routes or topics built at run time (reflection, string concatenation, config-driven routing) are not seen.</li>
+      <li>Per-test coverage only where the format records it (coverage.py contexts, lcov); elsewhere tests are selected statically.</li>
+      <li>Consumers outside the repo are "not ruled out" unless a service catalogue is configured.</li>
+      <li>The toolchain lock is verified on Python 3.12 on Windows.</li>
+    </ul></details>
+</section>
+
+<!-- ======================================================================= CHECKLISTS -->
+<section id="checklists">
+  <h2>Checklists</h2>
+  <p class="lede">Tick as you go. Progress is saved in this browser only. Printable copies are in
+     <code>checklists/</code>.</p>
+  <div class="grid g2">
+    <div class="card" data-checklist="onboarding">
+      <h4>Onboarding: day 0 to pilot exit</h4>
+      <div class="progress"><div></div></div>
+      <ul class="check">
+        <li><label><input type="checkbox"> Pilot service chosen (tests, owner, upcoming changes)</label></li>
+        <li><label><input type="checkbox"> Owner named per service (or knowingly TBD)</label></li>
+        <li><label><input type="checkbox"> Business description per service, written by a human</label></li>
+        <li><label><input type="checkbox"> Knowledge documents checked for personal data</label></li>
+        <li><label><input type="checkbox"> install.py dry run read, then --apply</label></li>
+        <li><label><input type="checkbox"> setup_toolchain.py exits 0</label></li>
+        <li><label><input type="checkbox"> /setup-context gate 1 confirmed; build stages pass</label></li>
+        <li><label><input type="checkbox"> refresh.py --check exit 0; smoke manifest passes</label></li>
+        <li><label><input type="checkbox"> Pilot gaps closed (contract, rules, tests, events)</label></li>
+        <li><label><input type="checkbox"> Pilot service added to enabled_services</label></li>
+        <li><label><input type="checkbox"> ≥ 5 changes, incl. clarify, plan-approve-execute, guarded</label></li>
+        <li><label><input type="checkbox"> /evaluate-pilot run; decision recorded</label></li>
+      </ul>
+    </div>
+    <div class="card" data-checklist="change">
+      <h4>Per change request</h4>
+      <div class="progress"><div></div></div>
+      <ul class="check">
+        <li><label><input type="checkbox"> Graphs fresh</label></li>
+        <li><label><input type="checkbox"> Acceptance criteria stated (or listed as unknowns)</label></li>
+        <li><label><input type="checkbox"> Seeds confirmed by reading the code</label></li>
+        <li><label><input type="checkbox"> Impact analysis read; impacted services make sense</label></li>
+        <li><label><input type="checkbox"> Critical gaps empty, or accepted in the plan</label></li>
+        <li><label><input type="checkbox"> Gate met (none / plan approved / owner sign-offs)</label></li>
+        <li><label><input type="checkbox"> Failing tests written first</label></li>
+        <li><label><input type="checkbox"> Only manifest files + plan's supporting files + tests changed</label></li>
+        <li><label><input type="checkbox"> Scope check within scope (or amended + re-approved)</label></li>
+        <li><label><input type="checkbox"> All required checks green; verification.md written</label></li>
+        <li><label><input type="checkbox"> Judge PASS; review clean; security review if guarded</label></li>
+        <li><label><input type="checkbox"> Human reviewed the diff</label></li>
+        <li><label><input type="checkbox"> /evaluate-change run; findings have cause, owner, fix</label></li>
+      </ul>
+    </div>
+  </div>
+  <p style="margin-top:12px"><button class="btn" style="background:var(--teal-700);color:#fff" id="reset">Reset checklists</button></p>
+</section>
+
+<footer>Brownfield Starter Kit 2.2.0 · stakeholder playbook. Derived from the kit's guides (01-SETUP, 02-CHANGE-FLOW,
+  03-EVALUATION, TROUBLESHOOTING), rule 40 and the engine design (docs/reference/ENGINE.md). When this page and those files
+  disagree, the files win.</footer>
+</main>
+</div>
+
+<script>
+  // highlight the current section in the side navigation
+  const links = [...document.querySelectorAll("nav.side a")];
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(a => a.classList.toggle("active", a.getAttribute("href") === "#" + e.target.id));
+      }
+    });
+  }, { rootMargin: "-20% 0px -70% 0px" });
+  document.querySelectorAll("main section[id]").forEach(s => observer.observe(s));
+
+  // checklists, saved per browser
+  const KEY = "brownfield-playbook-checklists";
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) { saved = {}; }
+  function update(list) {
+    const boxes = list.querySelectorAll("input");
+    const done = [...boxes].filter(b => b.checked).length;
+    list.querySelector(".progress > div").style.width = (100 * done / boxes.length) + "%";
+    boxes.forEach(b => b.closest("li").classList.toggle("done", b.checked));
+  }
+  document.querySelectorAll("[data-checklist]").forEach(list => {
+    const name = list.dataset.checklist;
+    list.querySelectorAll("input").forEach((box, i) => {
+      box.checked = !!(saved[name] || [])[i];
+      box.addEventListener("change", () => {
+        saved[name] = [...list.querySelectorAll("input")].map(b => b.checked);
+        try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {}
+        update(list);
+      });
+    });
+    update(list);
+  });
+  document.getElementById("reset").addEventListener("click", () => {
+    saved = {};
+    try { localStorage.removeItem(KEY); } catch (e) {}
+    document.querySelectorAll("[data-checklist]").forEach(list => {
+      list.querySelectorAll("input").forEach(b => b.checked = false);
+      update(list);
+    });
+  });
+</script>
+</body>
+</html>
